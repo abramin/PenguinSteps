@@ -510,6 +510,107 @@ Allow parents to back up the child’s progress and restore it if the tablet dat
 * Automatic cloud backups
 * Multi-user profiles
 
+## 17) Audio: background music + sound cues with ducking
+
+### Goal
+
+Play optional background music during the routine (3-track playlist) with a Music On/Off toggle, and automatically “duck” the music volume during UI sound cues (beeps, celebrations) so cues are clear.
+
+### User stories
+
+* As a child, I can turn music on or off easily.
+* As a parent, music starts reliably on a tablet without confusing autoplay issues.
+* As a child, I can still clearly hear countdown beeps and reward sounds because music briefly gets quieter.
+
+### Requirements
+
+#### 1) Music playlist (3 tracks)
+
+* The app supports a fixed list of 3 MP3 tracks stored locally in the repo (e.g., `/assets/music/track1.mp3`, etc.).
+* Playback behavior:
+
+  * When music is enabled, play tracks sequentially.
+  * On track end, automatically advance to the next track.
+  * After track 3 ends, loop back to track 1.
+* Music is “session-wide”:
+
+  * Continues across exercise transitions and rest overlays unless toggled off.
+
+#### 2) Music On/Off toggle
+
+* Provide a visible toggle button on the main UI:
+
+  * “Music: On” / “Music: Off” (icon optional)
+* Defaults:
+
+  * Default Off on first ever visit.
+  * Persist preference in `localStorage` (per device/browser).
+* iPad/Safari autoplay constraint:
+
+  * Music must only begin after a user gesture:
+
+    * Tapping Start, or toggling Music On.
+  * If Music is enabled before Start, the app should start music when Start is pressed.
+* When toggled Off:
+
+  * Music pauses immediately and remains paused.
+* When toggled On:
+
+  * Music resumes from current track/time if available, otherwise starts track 1.
+
+#### 3) Sound cues
+
+Support sound cues as short audio clips (MP3/WAV), e.g.:
+
+* Countdown beep in last 3 seconds of timed segments (optional setting)
+* “Sticker unlocked” / celebration sound at milestones
+
+Cues must play regardless of music state:
+
+* If music is Off, cues still play.
+* If music is On, cues trigger ducking (below).
+
+#### 4) Ducking behavior
+
+* When a cue is played and music is On:
+
+  * Reduce music volume to a “ducked” level (configurable; default 25% of normal).
+  * Restore music volume to normal after the cue finishes, with a short release fade.
+* Ducking timing:
+
+  * Fade down quickly (e.g., 100–200ms).
+  * Fade up smoothly (e.g., 300–600ms).
+  * Maintain ducked level for cue duration plus a short tail (e.g., 150ms).
+* If multiple cues overlap:
+
+  * Music should remain ducked until the last cue ends, then restore once.
+
+#### 5) Controls and configuration
+
+* Expose small constants in `app.js` for easy tuning:
+
+  * `MUSIC_DEFAULT_ENABLED = false`
+  * `MUSIC_VOLUME_NORMAL = 0.6`
+  * `MUSIC_VOLUME_DUCKED = 0.15`
+  * `DUCK_ATTACK_MS = 150`
+  * `DUCK_RELEASE_MS = 450`
+  * `DUCK_TAIL_MS = 150`
+
+### Non-functional requirements
+
+* Must work on tablet browsers (Safari iPadOS, Chrome Android) after first gesture.
+* Music and cues must not block or stutter the timer UI updates.
+* Audio files should be reasonably sized to load quickly; preload metadata at minimum.
+
+### Acceptance criteria
+
+* Toggling Music On starts playback only after a user tap (Start or toggle).
+* Music plays through 3 tracks in order and loops back to track 1.
+* Music preference persists across reloads.
+* Countdown/celebration cues play audibly.
+* When cues play, music volume ducks and returns smoothly.
+* Overlapping cues do not cause volume to “bounce”; music restores only after cues end.
+
 
 # PRD Addendum: Per-leg order is Right then Left
 

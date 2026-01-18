@@ -128,6 +128,93 @@ const state = {
 const completedSteps = new Set();
 
 // ============================================
+// Session Persistence (localStorage)
+// ============================================
+
+const STORAGE_NAMESPACE = 'wolfwalkers_';
+const STORAGE_KEYS = {
+  state: STORAGE_NAMESPACE + 'state',
+  completedSteps: STORAGE_NAMESPACE + 'completedSteps',
+};
+
+function saveSession() {
+  try {
+    // Save only the persistable parts of state (not timerIntervalId)
+    const persistableState = {
+      currentStepIndex: state.currentStepIndex,
+      currentSetIndex: state.currentSetIndex,
+      currentSide: state.currentSide,
+      started: state.started,
+      currentRep: state.currentRep,
+      timerPaused: state.timerPaused || state.timerRunning, // Save as paused if was running
+      secondsRemaining: state.secondsRemaining,
+      routineStartTime: state.routineStartTime,
+    };
+    localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(persistableState));
+    localStorage.setItem(STORAGE_KEYS.completedSteps, JSON.stringify([...completedSteps]));
+  } catch (e) {
+    console.warn('Failed to save session:', e);
+  }
+}
+
+function loadSession() {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEYS.state);
+    const savedSteps = localStorage.getItem(STORAGE_KEYS.completedSteps);
+
+    if (!savedState) return null;
+
+    const parsed = JSON.parse(savedState);
+    const steps = savedSteps ? JSON.parse(savedSteps) : [];
+
+    return { state: parsed, completedSteps: steps };
+  } catch (e) {
+    console.warn('Failed to load session:', e);
+    return null;
+  }
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.state);
+    localStorage.removeItem(STORAGE_KEYS.completedSteps);
+  } catch (e) {
+    console.warn('Failed to clear session:', e);
+  }
+}
+
+function hasSavedSession() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.state);
+    if (!saved) return false;
+    const parsed = JSON.parse(saved);
+    // Only prompt if actually started
+    return parsed.started === true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function restoreSession(savedData) {
+  if (!savedData) return;
+
+  // Restore state
+  state.currentStepIndex = savedData.state.currentStepIndex;
+  state.currentSetIndex = savedData.state.currentSetIndex;
+  state.currentSide = savedData.state.currentSide;
+  state.started = savedData.state.started;
+  state.currentRep = savedData.state.currentRep;
+  state.timerPaused = savedData.state.timerPaused;
+  state.timerRunning = false; // Always start paused on resume
+  state.secondsRemaining = savedData.state.secondsRemaining;
+  state.routineStartTime = savedData.state.routineStartTime;
+
+  // Restore completed steps
+  completedSteps.clear();
+  savedData.completedSteps.forEach(step => completedSteps.add(step));
+}
+
+// ============================================
 // DOM Elements
 // ============================================
 
@@ -166,6 +253,10 @@ const elements = {
   exercisesCompleted: document.getElementById("exercisesCompleted"),
   restartFromEnd: document.getElementById("restartFromEnd"),
   rewardContainer: document.getElementById("rewardContainer"),
+  // Resume session elements
+  resumeOverlay: document.getElementById("resumeOverlay"),
+  resumeSessionBtn: document.getElementById("resumeSessionBtn"),
+  startFreshBtn: document.getElementById("startFreshBtn"),
 };
 
 const typeClassMap = {
@@ -578,6 +669,9 @@ function render() {
   // Render checkpoint visualizations
   renderCheckpointRow();
   renderPath();
+
+  // Auto-save session after each render
+  saveSession();
 }
 
 // ============================================
@@ -874,6 +968,7 @@ function resetRoutine() {
   state.routineStartTime = null;
   state.routineEndTime = null;
   completedSteps.clear();
+  clearSession(); // Clear saved session data
   hideRestOverlay();
   render();
 }
@@ -935,5 +1030,40 @@ elements.restartButton.addEventListener("click", restart);
 elements.restartFromEnd.addEventListener("click", restart);
 elements.readyButton.addEventListener("click", continueAfterRest);
 
-// Initial render
-render();
+// Resume session overlay handlers
+function showResumeOverlay() {
+  elements.resumeOverlay.classList.remove("hidden");
+  elements.resumeOverlay.setAttribute("aria-hidden", "false");
+}
+
+function hideResumeOverlay() {
+  elements.resumeOverlay.classList.add("hidden");
+  elements.resumeOverlay.setAttribute("aria-hidden", "true");
+}
+
+elements.resumeSessionBtn.addEventListener("click", () => {
+  const savedData = loadSession();
+  if (savedData) {
+    restoreSession(savedData);
+    initAudio(); // Initialize audio context
+  }
+  hideResumeOverlay();
+  render();
+});
+
+elements.startFreshBtn.addEventListener("click", () => {
+  clearSession();
+  hideResumeOverlay();
+  render();
+});
+
+// ============================================
+// Initialization
+// ============================================
+
+// Check for saved session on load
+if (hasSavedSession()) {
+  showResumeOverlay();
+} else {
+  render();
+}

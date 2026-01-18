@@ -371,6 +371,25 @@ body {
   box-shadow: 0 2px 0 #3e2723, 0 4px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* Secondary wood button (lighter, for less prominent actions) */
+.wood-btn.secondary {
+  background: #8d6e63;
+  border-color: #5d4037;
+  box-shadow: 0 4px 0 #5d4037, 0 8px 8px rgba(0, 0, 0, 0.2);
+}
+
+.wood-btn.secondary:hover {
+  box-shadow: 0 6px 0 #5d4037, 0 10px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Resume buttons container */
+.resume-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
 .set-info {
   margin-top: 10px;
   font-size: 1.2rem;
@@ -596,8 +615,15 @@ body {
 }
 
 @keyframes celebrate-bounce {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-10px) scale(1.1); }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-10px) scale(1.1);
+  }
 }
 
 .end-screen h2 {
