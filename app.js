@@ -518,8 +518,8 @@ function render() {
   const metric = getMetricForStep(step);
 
   if (metric.type === "reps" || metric.type === "steps") {
-    // Show rep/step counter format: "0 / 15 reps"
-    elements.timerValue.innerHTML = `<span class="current-rep">${state.currentRep}</span> / <span class="total-rep">${metric.value}</span>`;
+    // Show rep/step counter format: "15" (just the total)
+    elements.timerValue.textContent = metric.value;
     elements.timerLabel.textContent = metric.label;
   } else if (step.mode === "timed" && state.started && state.secondsRemaining > 0) {
     // Show live countdown for timed exercises
@@ -535,8 +535,11 @@ function render() {
     elements.primaryAction.textContent = "Start";
     elements.primaryAction.disabled = false;
   } else if (step.mode === "timed") {
-    if (state.timerRunning || state.timerPaused) {
-      elements.primaryAction.textContent = "Skip Timer";
+    if (state.timerRunning) {
+      elements.primaryAction.textContent = "Pause Timer";
+      elements.primaryAction.disabled = false;
+    } else if (state.timerPaused) {
+      elements.primaryAction.textContent = "Resume Timer";
       elements.primaryAction.disabled = false;
     } else {
       elements.primaryAction.textContent = "Start Timer";
@@ -827,9 +830,9 @@ function handlePrimaryAction() {
   // For timed exercises
   if (step.mode === "timed") {
     // Timer is running or paused - skip to completion
+    // Timer is running or paused - toggle pause
     if (state.timerRunning || state.timerPaused) {
-      stopTimer();
-      onTimerComplete();
+      togglePause();
       return;
     }
     // Timer not started (e.g., after going back) - start it

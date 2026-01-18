@@ -473,12 +473,12 @@ body {
 /* New Wolf Spirit Image */
 .wolf-spirit {
   width: 300px;
-  height: auto;
+  height: 200px;
+  /* Needs explicit height to show background image */
   background: url('assets/wolf_spirit_blue.png') no-repeat center;
   background-size: contain;
   mix-blend-mode: screen;
   /* Removes black bg */
-  filter: drop-shadow(0 0 20px var(--rune-blue));
   opacity: 0.7;
   animation: float-spirit 6s infinite ease-in-out;
 }
