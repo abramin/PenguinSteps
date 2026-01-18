@@ -1067,3 +1067,108 @@ if (hasSavedSession()) {
 } else {
   render();
 }
+
+// ============================================
+// Service Worker & PWA Support
+// ============================================
+
+let swRegistration = null;
+let waitingServiceWorker = null;
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      swRegistration = await navigator.serviceWorker.register('./sw.js');
+      console.log('[PWA] Service worker registered:', swRegistration.scope);
+
+      // Check for updates on page load
+      swRegistration.addEventListener('updatefound', () => {
+        const newWorker = swRegistration.installing;
+        console.log('[PWA] New service worker installing');
+
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version available
+            waitingServiceWorker = newWorker;
+            showUpdateBanner();
+            console.log('[PWA] Update available');
+          }
+        });
+      });
+
+      // Handle controller change (when skipWaiting is called)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[PWA] Controller changed, reloading...');
+        window.location.reload();
+      });
+
+    } catch (error) {
+      console.error('[PWA] Service worker registration failed:', error);
+    }
+  });
+}
+
+// Listen for messages from service worker
+navigator.serviceWorker?.addEventListener('message', (event) => {
+  if (event.data?.type === 'UPDATE_AVAILABLE') {
+    showUpdateBanner();
+  }
+});
+
+// ============================================
+// Online/Offline Indicator
+// ============================================
+
+const connectionIndicator = document.getElementById('connectionIndicator');
+const indicatorDot = connectionIndicator?.querySelector('.indicator-dot');
+const indicatorText = connectionIndicator?.querySelector('.indicator-text');
+
+function updateConnectionStatus() {
+  const isOnline = navigator.onLine;
+
+  if (connectionIndicator) {
+    connectionIndicator.classList.toggle('offline', !isOnline);
+    indicatorText.textContent = isOnline ? 'Online' : 'Offline';
+  }
+}
+
+// Initial status
+updateConnectionStatus();
+
+// Listen for online/offline events
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+
+// ============================================
+// Update Banner
+// ============================================
+
+const updateBanner = document.getElementById('updateBanner');
+const updateBtn = document.getElementById('updateBtn');
+const dismissUpdate = document.getElementById('dismissUpdate');
+
+function showUpdateBanner() {
+  if (updateBanner) {
+    updateBanner.classList.remove('hidden');
+  }
+}
+
+function hideUpdateBanner() {
+  if (updateBanner) {
+    updateBanner.classList.add('hidden');
+  }
+}
+
+// Apply update and reload
+updateBtn?.addEventListener('click', () => {
+  if (waitingServiceWorker) {
+    waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+  }
+  hideUpdateBanner();
+});
+
+// Dismiss banner (update will apply on next session)
+dismissUpdate?.addEventListener('click', () => {
+  hideUpdateBanner();
+});

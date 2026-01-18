@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#3e2723" />
+    <link rel="apple-touch-icon" href="icons/icon-192.svg" />
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -171,6 +174,19 @@
 
         <button class="wood-btn" id="restartFromEnd">Start New Journey</button>
       </div>
+    </div>
+
+    <!-- Online/Offline Indicator -->
+    <div class="connection-indicator" id="connectionIndicator" aria-live="polite">
+      <span class="indicator-dot"></span>
+      <span class="indicator-text">Online</span>
+    </div>
+
+    <!-- Update Available Banner -->
+    <div class="update-banner hidden" id="updateBanner" aria-live="polite">
+      <span class="update-message">🐺 Update available!</span>
+      <button class="update-btn" id="updateBtn">Reload when ready</button>
+      <button class="dismiss-btn" id="dismissUpdate" aria-label="Dismiss">×</button>
     </div>
   </body>
 </html>

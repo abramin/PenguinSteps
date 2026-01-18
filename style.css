@@ -850,3 +850,148 @@ body {
     height: 60px;
   }
 }
+
+/* ============================================
+   PWA Support - Online/Offline & Update Banner
+   ============================================ */
+
+/* Online/Offline Indicator */
+.connection-indicator {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #fff;
+  z-index: 200;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rune-green);
+  box-shadow: 0 0 6px var(--rune-green);
+  transition: all 0.3s ease;
+}
+
+.connection-indicator.offline .indicator-dot {
+  background: var(--rune-red);
+  box-shadow: 0 0 6px var(--rune-red);
+}
+
+.connection-indicator.offline .indicator-text {
+  color: #ffcdd2;
+}
+
+/* Update Banner */
+.update-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(62, 39, 35, 0.95);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
+  z-index: 200;
+  backdrop-filter: blur(5px);
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.update-message {
+  color: var(--text-light);
+  font-size: 1rem;
+  font-family: var(--font-main);
+}
+
+.update-btn {
+  background: var(--rune-green);
+  color: #1a1e12;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+
+.update-btn:hover {
+  background: #66bb6a;
+  transform: scale(1.05);
+}
+
+.dismiss-btn {
+  background: transparent;
+  color: #aaa;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.dismiss-btn:hover {
+  color: #fff;
+}
+
+.update-banner.hidden {
+  display: none;
+}
+
+/* Mobile adjustments for PWA elements */
+@media (max-width: 768px) {
+  .connection-indicator {
+    top: 5px;
+    right: 5px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+
+  .indicator-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .update-banner {
+    bottom: 10px;
+    padding: 10px 15px;
+    gap: 8px;
+    max-width: calc(100% - 20px);
+  }
+
+  .update-message {
+    font-size: 0.85rem;
+  }
+
+  .update-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
