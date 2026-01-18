@@ -13,6 +13,7 @@ const routine = [
     secondsPerSide: 30,
     purpose: "Loosen calves and ankles.",
     instructions: "Hands on wall, heels down.",
+    image: "assets/ex_wall_calf_stretch.png"
   },
   {
     name: "Seated Towel Stretch",
@@ -23,6 +24,7 @@ const routine = [
     secondsPerSide: 30,
     purpose: "Stretch the back of the leg.",
     instructions: "Sit tall, towel around foot.",
+    image: "assets/ex_seated_towel_stretch.png"
   },
   {
     name: "Heel Walking (forwards & backwards)",
@@ -33,6 +35,7 @@ const routine = [
     steps: 10,
     purpose: "Build shin strength.",
     instructions: "Walk on heels forward then back.",
+    image: "assets/ex_heel_walking.png"
   },
   {
     name: "Resistance Band Dorsiflexion",
@@ -43,6 +46,7 @@ const routine = [
     repsPerSide: 15,
     purpose: "Strengthen the front of the ankle.",
     instructions: "Sit down, use the band to pull toes up.",
+    image: "assets/ex_band_dorsiflexion.png"
   },
   {
     name: "Mini Squats (heels flat)",
@@ -53,6 +57,7 @@ const routine = [
     reps: 10,
     purpose: "Strengthen legs with control.",
     instructions: "Slow squat, keep heels down.",
+    image: "assets/ex_mini_squats.png"
   },
   {
     name: "Heel-Toe Walk on Tape Line",
@@ -63,6 +68,7 @@ const routine = [
     steps: 10,
     purpose: "Practice steady walking.",
     instructions: "Heel to toe along the line.",
+    image: "assets/ex_heel_toe_walk.png"
   },
   {
     name: "Walk Uphill/Incline",
@@ -73,6 +79,7 @@ const routine = [
     seconds: 180,
     purpose: "Build endurance.",
     instructions: "Walk uphill at a steady pace.",
+    image: "assets/ex_walk_uphill.png"
   },
   {
     name: "One-Leg Stand (eyes open, heels down)",
@@ -83,6 +90,7 @@ const routine = [
     secondsPerSide: 30,
     purpose: "Improve balance.",
     instructions: "Stand tall, eyes forward.",
+    image: "assets/ex_one_leg_stand.png"
   },
   {
     name: "Penguin Walk Game",
@@ -93,6 +101,7 @@ const routine = [
     seconds: 180,
     purpose: "Have fun while moving.",
     instructions: "Waddle like a penguin!",
+    image: "assets/ex_penguin_walk.png"
   },
 ];
 
@@ -122,6 +131,7 @@ const elements = {
   exerciseName: document.getElementById("exerciseName"),
   exercisePurpose: document.getElementById("exercisePurpose"),
   exerciseInstructions: document.getElementById("exerciseInstructions"),
+  exerciseImage: document.getElementById("exerciseImage"),
   setStatus: document.getElementById("setStatus"),
   setBadge: document.getElementById("setBadge"),
   sideIndicator: document.getElementById("sideIndicator"),
@@ -248,6 +258,10 @@ function render() {
   elements.exerciseName.textContent = step.name;
   elements.exercisePurpose.textContent = step.purpose || "";
   elements.exerciseInstructions.textContent = step.instructions || "";
+  if (step.image) {
+    elements.exerciseImage.src = step.image;
+    elements.exerciseImage.alt = step.name;
+  }
 
   // Update set status (hidden but kept for compatibility)
   elements.setStatus.textContent = `Set ${state.currentSetIndex + 1} of ${step.sets}`;

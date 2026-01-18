@@ -3,104 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Penguin Steps</title>
+    <title>Wolfwalkers' Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
     <script src="app.js" defer></script>
   </head>
   <body>
-    <!-- Decorative sparkles -->
-    <div class="sparkle sparkle-1">✦</div>
-    <div class="sparkle sparkle-2">✦</div>
+    <!-- Decorative sparkles (spirits) -->
+    <div class="spirit spirit-1">✦</div>
+    <div class="spirit spirit-2">✦</div>
+    <div class="spirit spirit-3">✦</div>
 
-    <div class="page">
-      <!-- Header with title and progress -->
-      <header class="topbar">
-        <div class="brand">
-          <div class="brand-title">Penguin Steps</div>
-        </div>
-        <div class="header-progress">
-          <div class="progress-label" id="progressLabel">Checkpoint 1 of 9</div>
-          <!-- Circular checkpoint indicators at top -->
-          <div class="checkpoint-row" id="checkpointRow"></div>
-          <!-- Hidden progress bar for compatibility -->
-          <div class="progress-bar" aria-hidden="true">
-            <div class="progress-fill" id="progressFill"></div>
+    <div class="page-container">
+      <!-- Top Wood Header -->
+      <header class="wood-header">
+        <div class="header-content">
+          <h1 class="game-title">Wolfwalkers' Journey</h1>
+          <div class="header-progress">
+            <div class="progress-label" id="progressLabel">Checkpoint 1 of 9</div>
+            <!-- Checkpoint visual path (top version if needed, or keeping it hidden if using bottom path) -->
+            <div class="checkpoint-row hidden" id="checkpointRow"></div> 
+             <div class="progress-bar" aria-hidden="true">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
           </div>
         </div>
       </header>
 
-      <!-- Main content with side navigation -->
-      <main class="main-grid">
-        <!-- Left nav: Back -->
-        <div class="nav-side">
-          <button class="nav-btn" id="backButtonNav" aria-label="Back">
-            <span>‹</span>
-          </button>
-          <div class="nav-btn-label">Back</div>
+      <!-- Main Game Area -->
+      <main class="game-grid">
+        
+        <!-- Left Controls Group -->
+        <div class="controls-left">
+           <!-- Back Button (Wolf Rune Blue) -->
+           <div class="control-item">
+            <button class="rune-btn rune-blue" id="backButtonNav" aria-label="Back">
+                <div class="rune-symbol">‹</div>
+            </button>
+            <div class="rune-label">Back</div>
+           </div>
+
+           <!-- Pause Button (Paw Rune Red) -->
+           <div class="control-item">
+            <button class="rune-btn rune-red" id="pauseButton">
+                <div class="rune-symbol">⏸</div>
+            </button>
+            <div class="rune-label">Pause</div>
+           </div>
         </div>
 
-        <!-- Exercise card -->
-        <section class="card exercise-card" id="exerciseCard" aria-live="polite">
-          <div class="card-header">
-            <div class="badge" id="typeBadge">Stretch</div>
-          </div>
-          <div class="card-body">
-            <h1 class="exercise-name" id="exerciseName">Wall Calf Stretch</h1>
-            <p class="exercise-instructions" id="exerciseInstructions"></p>
+        <!-- Center Parchment Card -->
+        <section class="parchment-card" id="exerciseCard" aria-live="polite">
+            <div class="parchment-content">
+                <div class="card-header-ornament"></div>
+                
+                <h2 class="exercise-title" id="exerciseName">Wall Calf Stretch</h2>
+                
+                <div class="exercise-visual">
+                  <img id="exerciseImage" src="assets/ex_wall_calf_stretch.png" alt="Exercise illustration" />
+                </div>
+                
+                <p class="exercise-desc" id="exerciseInstructions"></p>
 
-            <div class="timer-area" id="timerArea">
-              <div class="timer-value" id="timerValue">00:30</div>
-              <div class="timer-label" id="timerLabel">timer</div>
-              <button class="primary" id="primaryAction">Start</button>
-            </div>
+                <div class="main-action-area" id="timerArea">
+                    <div class="metric-display">
+                         <div class="metric-value" id="timerValue">00:30</div>
+                         <div class="metric-label" id="timerLabel">timer</div>
+                    </div>
+                
+                    <button class="wood-btn" id="primaryAction">Start</button>
+                </div>
 
-            <div class="set-row">
-              <div class="set-badge" id="setBadge">Set 1 of 3 - Right Leg</div>
+                <div class="set-info">
+                   <span class="wolf-icon">🐺</span>
+                   <span id="setBadge">Set 1 of 3 - Right Leg</span>
+                </div>
             </div>
-          </div>
-          <!-- Hidden elements for compatibility -->
-          <p class="exercise-purpose" id="exercisePurpose" hidden></p>
-          <div class="set-status" id="setStatus" hidden>Set 1 of 3</div>
-          <div class="side-indicator" id="sideIndicator" hidden>Right</div>
+            
+            <!-- Hidden compatibility elements -->
+            <div class="badge hidden" id="typeBadge">Stretch</div>
+            <p class="exercise-purpose" id="exercisePurpose" hidden></p>
+            <div class="set-status" id="setStatus" hidden>Set 1 of 3</div>
+            <div class="side-indicator" id="sideIndicator" hidden>Right</div>
         </section>
 
-        <!-- Right nav: Skip -->
-        <div class="nav-side">
-          <button class="nav-btn" id="skipButtonNav" aria-label="Skip">
-            <span>›</span>
-          </button>
-          <div class="nav-btn-label">Skip</div>
+        <!-- Right Controls Group -->
+        <div class="controls-right">
+             <!-- Skip Button (Wolf Jump Green) -->
+            <div class="control-item">
+                <button class="rune-btn rune-green" id="skipButtonNav" aria-label="Skip">
+                    <div class="rune-symbol">›</div>
+                </button>
+                <div class="rune-label">Skip</div>
+               </div>
         </div>
+
       </main>
+      
+      <!-- Bottom Path -->
+      <footer class="bottom-path-area">
+         <ol class="stone-path" id="checkpointPath"></ol>
+      </footer>
 
-      <!-- Bottom controls -->
-      <section class="controls" aria-label="Controls">
-        <button class="control" id="pauseButton" disabled>
-          <span class="control-icon">⏸</span> Pause
-        </button>
-        <button class="control" id="resumeButton" hidden>
-          <span class="control-icon">▶</span> Resume
-        </button>
-        <button class="control" id="restartButton">
-          <span class="control-icon">↺</span> Restart
-        </button>
-        <!-- Hidden but kept for compatibility -->
-        <button class="control" id="backButton" hidden>Back</button>
-        <button class="control" id="skipButton" hidden>Skip</button>
-      </section>
+      <!-- Hidden controls kept for JS compatibility if needed, but we re-mapped IDs above -->
+      <div style="display:none;">
+        <button id="resumeButton">Resume</button>
+         <button id="restartButton">Restart</button>
+         <button id="backButton">Back</button>
+         <button id="skipButton">Skip</button>
+      </div>
 
-      <!-- Bottom path visualization -->
-      <aside class="path-card">
-        <ol class="path" id="checkpointPath"></ol>
-      </aside>
     </div>
 
-    <!-- Rest overlay (Strength exercises only) -->
+    <!-- Rest overlay -->
     <div class="overlay hidden" id="restOverlay" aria-hidden="true">
-      <div class="overlay-card">
-        <h2>Nice work! Rest if you want.</h2>
+      <div class="parchment-modal">
+        <h2>Rest, Little Wolf</h2>
         <p id="restNext">Up next: Set 2</p>
-        <button class="primary" id="readyButton">Ready</button>
+        <button class="wood-btn" id="readyButton">Ready</button>
       </div>
     </div>
   </body>
