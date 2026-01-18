@@ -132,5 +132,33 @@
         <button class="wood-btn" id="readyButton">Ready</button>
       </div>
     </div>
+
+    <!-- End screen overlay -->
+    <div class="overlay hidden" id="endOverlay" aria-hidden="true">
+      <div class="parchment-modal end-screen">
+        <div class="celebration-header">
+          <span class="wolf-icon-large">🐺</span>
+          <h2>Journey Complete!</h2>
+        </div>
+
+        <div class="completion-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="totalTimeValue">00:00</div>
+            <div class="stat-label">Total Time</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="exercisesCompleted">9</div>
+            <div class="stat-label">Exercises</div>
+          </div>
+        </div>
+
+        <p class="farewell-message">Great work, little wolf! The forest spirits are proud of you.</p>
+
+        <!-- Reward container placeholder for VS8 -->
+        <div class="reward-container" id="rewardContainer"></div>
+
+        <button class="wood-btn" id="restartFromEnd">Start New Journey</button>
+      </div>
+    </div>
   </body>
 </html>

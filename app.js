@@ -120,6 +120,9 @@ const state = {
   timerPaused: false,
   secondsRemaining: 0,
   timerIntervalId: null,
+  // Routine timing
+  routineStartTime: null,
+  routineEndTime: null,
 };
 
 const completedSteps = new Set();
@@ -157,6 +160,12 @@ const elements = {
   restOverlay: document.getElementById("restOverlay"),
   restNext: document.getElementById("restNext"),
   readyButton: document.getElementById("readyButton"),
+  // End screen elements
+  endOverlay: document.getElementById("endOverlay"),
+  totalTimeValue: document.getElementById("totalTimeValue"),
+  exercisesCompleted: document.getElementById("exercisesCompleted"),
+  restartFromEnd: document.getElementById("restartFromEnd"),
+  rewardContainer: document.getElementById("rewardContainer"),
 };
 
 const typeClassMap = {
@@ -469,7 +478,8 @@ function render() {
 
   // Update progress label
   elements.progressLabel.textContent = `Checkpoint ${state.currentStepIndex + 1} of ${routine.length}`;
-  const percent = (completedSteps.size / routine.length) * 100;
+  const percent = Math.round((completedSteps.size / routine.length) * 100);
+  elements.progressLabel.textContent += ` (${percent}%)`;
   elements.progressFill.style.width = `${percent}%`;
 
   // Update exercise info
@@ -616,6 +626,55 @@ function hideRestOverlay() {
   elements.restOverlay.setAttribute("aria-hidden", "true");
 }
 
+// ============================================
+// End Screen
+// ============================================
+
+function playCelebrationSound() {
+  if (!audioContext) return;
+
+  // Play a rising arpeggio for celebration
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+  notes.forEach((freq, i) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = freq;
+    oscillator.type = "sine";
+
+    const startTime = audioContext.currentTime + (i * 0.15);
+    gainNode.gain.setValueAtTime(0.3, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.3);
+  });
+}
+
+function showEndScreen() {
+  state.routineEndTime = Date.now();
+
+  // Calculate total time
+  const totalSeconds = Math.floor((state.routineEndTime - state.routineStartTime) / 1000);
+  elements.totalTimeValue.textContent = formatTime(totalSeconds);
+  elements.exercisesCompleted.textContent = routine.length;
+
+  // Show the overlay
+  elements.endOverlay.classList.remove("hidden");
+  elements.endOverlay.setAttribute("aria-hidden", "false");
+
+  // Play celebration sound
+  playCelebrationSound();
+}
+
+function hideEndScreen() {
+  elements.endOverlay.classList.add("hidden");
+  elements.endOverlay.setAttribute("aria-hidden", "true");
+}
+
 // Advance to the next unit (side, set, or step)
 function advanceUnit() {
   const step = getCurrentStep();
@@ -681,7 +740,7 @@ function advanceUnit() {
   }
 
   // All done - routine complete
-  render();
+  showEndScreen();
 }
 
 // Continue after rest overlay
@@ -796,19 +855,34 @@ function skip() {
 // Restart the entire routine
 function restart() {
   stopTimer();
+  hideEndScreen();
 
   if (!confirm("Restart the entire routine? All progress will be lost.")) {
     return;
   }
 
+  resetRoutine();
+}
+
+// Reset routine state (shared by restart and restartFromEndScreen)
+function resetRoutine() {
   state.currentStepIndex = 0;
   state.currentSetIndex = 0;
   state.currentSide = routine[0].perSide ? "Right" : null;
   state.started = false;
   state.currentRep = 0;
+  state.routineStartTime = null;
+  state.routineEndTime = null;
   completedSteps.clear();
   hideRestOverlay();
   render();
+}
+
+// Restart from end screen (no confirmation needed)
+function restartFromEndScreen() {
+  stopTimer();
+  hideEndScreen();
+  resetRoutine();
 }
 
 // Handle primary action button click
@@ -817,6 +891,7 @@ function handlePrimaryAction() {
 
   if (!state.started) {
     state.started = true;
+    state.routineStartTime = Date.now(); // Track when routine started
     initAudio(); // Initialize audio on first user interaction
 
     if (step.mode === "timed") {
@@ -857,6 +932,7 @@ elements.skipButton.addEventListener("click", skip);
 elements.backButtonNav.addEventListener("click", goBack);
 elements.skipButtonNav.addEventListener("click", skip);
 elements.restartButton.addEventListener("click", restart);
+elements.restartFromEnd.addEventListener("click", restart);
 elements.readyButton.addEventListener("click", continueAfterRest);
 
 // Initial render
