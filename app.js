@@ -1,3 +1,8 @@
+// ============================================
+// Routine Configuration
+// Edit this array to customize the exercise routine
+// ============================================
+
 const routine = [
   {
     name: "Wall Calf Stretch",
@@ -91,11 +96,22 @@ const routine = [
   },
 ];
 
+// ============================================
+// State Management
+// ============================================
+
 const state = {
   currentStepIndex: 0,
   currentSetIndex: 0,
   currentSide: routine[0].perSide ? "Right" : null,
+  started: false,
 };
+
+const completedSteps = new Set();
+
+// ============================================
+// DOM Elements
+// ============================================
 
 const elements = {
   progressLabel: document.getElementById("progressLabel"),
@@ -109,6 +125,12 @@ const elements = {
   timerValue: document.getElementById("timerValue"),
   timerLabel: document.getElementById("timerLabel"),
   checkpointPath: document.getElementById("checkpointPath"),
+  primaryAction: document.getElementById("primaryAction"),
+  pauseButton: document.getElementById("pauseButton"),
+  resumeButton: document.getElementById("resumeButton"),
+  backButton: document.getElementById("backButton"),
+  skipButton: document.getElementById("skipButton"),
+  restartButton: document.getElementById("restartButton"),
 };
 
 const typeClassMap = {
@@ -118,6 +140,10 @@ const typeClassMap = {
   Balance: "type-balance",
   Fun: "type-fun",
 };
+
+// ============================================
+// Utility Functions
+// ============================================
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
@@ -143,6 +169,10 @@ function getMetricForStep(step) {
   return { value: "--", label: "" };
 }
 
+// ============================================
+// Rendering
+// ============================================
+
 function renderPath() {
   elements.checkpointPath.innerHTML = "";
 
@@ -151,7 +181,7 @@ function renderPath() {
     checkpoint.className = "checkpoint";
     checkpoint.textContent = String(index + 1);
 
-    if (index < state.currentStepIndex) {
+    if (completedSteps.has(index)) {
       checkpoint.classList.add("is-done");
     }
 
@@ -167,7 +197,7 @@ function render() {
   const step = routine[state.currentStepIndex];
 
   elements.progressLabel.textContent = `Checkpoint ${state.currentStepIndex + 1} of ${routine.length}`;
-  const percent = (state.currentStepIndex / routine.length) * 100;
+  const percent = (completedSteps.size / routine.length) * 100;
   elements.progressFill.style.width = `${percent}%`;
 
   elements.typeBadge.textContent = step.type;
@@ -189,7 +219,174 @@ function render() {
   elements.timerValue.textContent = metric.value;
   elements.timerLabel.textContent = metric.label;
 
+  // Update primary action button text based on mode and state
+  if (!state.started) {
+    elements.primaryAction.textContent = "Start";
+  } else if (step.mode === "timed") {
+    elements.primaryAction.textContent = "Next";
+  } else if (step.perSide) {
+    elements.primaryAction.textContent = `Done: ${state.currentSide}`;
+  } else {
+    elements.primaryAction.textContent = "Complete Set";
+  }
+
+  // Update navigation button states
+  elements.backButton.disabled = isAtBeginning();
+  elements.skipButton.disabled = state.currentStepIndex === routine.length - 1;
+
   renderPath();
 }
 
+// ============================================
+// Navigation Logic
+// ============================================
+
+function isAtBeginning() {
+  return (
+    state.currentStepIndex === 0 &&
+    state.currentSetIndex === 0 &&
+    (!routine[0].perSide || state.currentSide === "Right")
+  );
+}
+
+function isAtEnd() {
+  const lastStep = routine[routine.length - 1];
+  return (
+    state.currentStepIndex === routine.length - 1 &&
+    state.currentSetIndex === lastStep.sets - 1 &&
+    (!lastStep.perSide || state.currentSide === "Left")
+  );
+}
+
+function getCurrentStep() {
+  return routine[state.currentStepIndex];
+}
+
+// Advance to the next unit (side, set, or step)
+function advanceUnit() {
+  const step = getCurrentStep();
+
+  // Per-leg: advance from Right to Left
+  if (step.perSide && state.currentSide === "Right") {
+    state.currentSide = "Left";
+    render();
+    return;
+  }
+
+  // End of set: advance to next set or next step
+  if (state.currentSetIndex < step.sets - 1) {
+    state.currentSetIndex++;
+    state.currentSide = step.perSide ? "Right" : null;
+    render();
+    return;
+  }
+
+  // Completed all sets for this step
+  completedSteps.add(state.currentStepIndex);
+
+  // Move to next step if available
+  if (state.currentStepIndex < routine.length - 1) {
+    state.currentStepIndex++;
+    state.currentSetIndex = 0;
+    const nextStep = getCurrentStep();
+    state.currentSide = nextStep.perSide ? "Right" : null;
+    render();
+    return;
+  }
+
+  // All done - routine complete
+  render();
+}
+
+// Go back to the previous unit (side, set, or step)
+function goBack() {
+  if (isAtBeginning()) {
+    return;
+  }
+
+  const step = getCurrentStep();
+
+  // Per-leg: go from Left back to Right
+  if (step.perSide && state.currentSide === "Left") {
+    state.currentSide = "Right";
+    render();
+    return;
+  }
+
+  // Beginning of step: go to previous step's last set/side
+  if (state.currentSetIndex === 0) {
+    // Remove current step from completed if we're going back
+    completedSteps.delete(state.currentStepIndex);
+
+    state.currentStepIndex--;
+    const prevStep = getCurrentStep();
+    state.currentSetIndex = prevStep.sets - 1;
+    state.currentSide = prevStep.perSide ? "Left" : null;
+
+    // Also remove previous step from completed since we're re-entering it
+    completedSteps.delete(state.currentStepIndex);
+
+    render();
+    return;
+  }
+
+  // Go to previous set
+  state.currentSetIndex--;
+  state.currentSide = step.perSide ? "Left" : null;
+  render();
+}
+
+// Skip to next step (marks current step complete)
+function skip() {
+  // Mark current step as complete
+  completedSteps.add(state.currentStepIndex);
+
+  // Move to next step if available
+  if (state.currentStepIndex < routine.length - 1) {
+    state.currentStepIndex++;
+    state.currentSetIndex = 0;
+    const nextStep = getCurrentStep();
+    state.currentSide = nextStep.perSide ? "Right" : null;
+  }
+
+  render();
+}
+
+// Restart the entire routine
+function restart() {
+  if (!confirm("Restart the entire routine? All progress will be lost.")) {
+    return;
+  }
+
+  state.currentStepIndex = 0;
+  state.currentSetIndex = 0;
+  state.currentSide = routine[0].perSide ? "Right" : null;
+  state.started = false;
+  completedSteps.clear();
+  render();
+}
+
+// Handle primary action button click
+function handlePrimaryAction() {
+  if (!state.started) {
+    state.started = true;
+    render();
+    return;
+  }
+
+  // For timed exercises, this advances (timers will handle actual countdown later)
+  // For reps/steps, this completes the current side or set
+  advanceUnit();
+}
+
+// ============================================
+// Event Listeners
+// ============================================
+
+elements.primaryAction.addEventListener("click", handlePrimaryAction);
+elements.backButton.addEventListener("click", goBack);
+elements.skipButton.addEventListener("click", skip);
+elements.restartButton.addEventListener("click", restart);
+
+// Initial render
 render();
