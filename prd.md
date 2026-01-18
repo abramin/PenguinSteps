@@ -104,6 +104,7 @@ Notes:
 
 * Bright, playful palette; big buttons and text.
 * Minimal reading. Short instructions and icons.
+* Touchscreen-friendly controls: large tap targets, adequate spacing, and no hover-only interactions.
 
 ### Main screen (single view)
 
@@ -224,6 +225,7 @@ MVP:
   * Between strength sets
   * Between strength exercises
 * The user can restart the routine, skip forward, and move back through exercises.
+* All controls are usable on touchscreen devices (tablet-friendly tap targets and spacing).
 * No rest overlay for Stretch or Balance.
 * Overall progress remains visible and updates correctly.
 * Refresh allows resuming.
@@ -248,6 +250,266 @@ MVP:
   3. Strength-only rest overlay logic
   4. Progress map + persistence
   5. Polish (animations/sounds toggle)
+
+## 14) Offline support (PWA-lite: offline after first visit)
+
+### Goal
+
+After the app has been opened once while online, it should be usable offline on a tablet or desktop (load, run routine, and save progress) without requiring any backend.
+
+### User story
+
+As a child/parent, once I’ve opened the app at least once, I can later open it again with no internet and it still works normally.
+
+### Requirements
+
+1. **Service worker caching**
+
+   * The app must register a service worker on first load.
+   * The service worker must precache all core assets required to run:
+
+     * `index.html`
+     * `style.css`
+     * `app.js`
+     * `manifest.json`
+     * any local images (background, icons), sounds, and fonts used by the app
+   * On subsequent visits, the app must load from cache if the network is unavailable.
+
+2. **Cache strategy**
+
+   * Use a conservative, predictable strategy:
+
+     * **App shell (HTML/CSS/JS/images):** cache-first (serve from cache; fallback to network)
+     * **index.html:** prefer a “stale-while-revalidate” approach or a versioned app shell to reduce update confusion
+   * Include a cache version string (e.g., `penguin-steps-v1`) so releases can invalidate old caches safely.
+
+3. **Update behavior**
+
+   * If a newer version is available:
+
+     * The app must not break mid-session.
+     * Prefer to show a non-blocking banner: “Update available. Reload when you’re ready.”
+     * Only apply the new version after user clicks Reload (or after session ends), to avoid confusing changes during a workout.
+
+4. **Offline indicator**
+
+   * The UI should show a small status indicator:
+
+     * “Online” / “Offline mode”
+   * This is informational only, not intrusive.
+
+5. **Persistence**
+
+   * Routine progress must continue to be stored in `localStorage` and work offline.
+   * If the user refreshes while offline, the app must still offer “Resume session” if state exists.
+
+### Acceptance criteria
+
+* After one successful online visit, turning on airplane mode and re-opening the URL loads the app and it is fully usable.
+* All images/sounds required for the UI still display/play offline.
+* An in-progress session can be resumed after refresh while offline.
+* Deploying a new version does not silently switch UI/logic mid-session; the user is prompted to reload at a safe moment.
+
+### Out of scope (offline)
+
+* Cross-device sync while offline
+* Server-backed storage
+
+
+## 15) Motivation system (6-month progression, local-only)
+
+### Goal
+
+Keep a child engaged over ~6 months by making daily sessions feel like progress: visible streaks, earned badges, and lightweight “leveling up” without adding complexity or pressure.
+
+### Principles
+
+* Rewards should be frequent early (first 2 weeks), then shift to longer-term goals.
+* No shame mechanics. Missed days do not “break” anything permanently.
+* Everything stays local (no accounts).
+
+### User stories
+
+* As a child, when I finish a session I earn something fun (sticker/badge) and see my progress grow.
+* As a parent, I can see overall adherence (how many sessions completed this week/month) without extra tracking.
+
+### Core features (MVP+)
+
+1. **Session completion reward**
+
+   * On completion, show a celebration screen (simple animation) and award:
+
+     * **1 sticker** (random from a small set) OR a themed collectible (penguins, footprints, stars).
+   * Display “Sessions completed: X”.
+
+2. **Streaks with “grace”**
+
+   * Track consecutive days with at least one completed session.
+   * Include a “grace day” system:
+
+     * Up to **2 grace days per month** that prevent a streak reset.
+   * UI:
+
+     * A small calendar strip showing last 7 days as icons (completed, grace used, missed).
+
+3. **Badges (achievement system)**
+
+   * Badges unlock for milestones, e.g.:
+
+     * First session
+     * 3 sessions in a week
+     * 10 total sessions
+     * 25 total sessions
+     * 50 total sessions
+     * 100 total sessions
+     * “Stretch Star” (complete all stretch exercises in a session without skipping)
+     * “Strong Steps” (complete all strength sets)
+     * “Explorer” (use offline mode successfully)
+   * Badges are visual, tappable to view details.
+
+4. **Leveling / Journey map (6-month arc)**
+
+   * Introduce a “Journey” with **6 chapters (months)**.
+   * Each month has a theme and a simple progress bar:
+
+     * Month 1: “Learning the Steps”
+     * Month 2: “Steady Feet”
+     * Month 3: “Strong Ankles”
+     * Month 4: “Balanced Explorer”
+     * Month 5: “Smooth Walker”
+     * Month 6: “Penguin Pro”
+   * Progress within a month is based on sessions completed that month (not perfect attendance).
+
+5. **Visible progress on main screen**
+
+   * Always show:
+
+     * Today’s checkpoint progress (within the routine)
+     * “Chapter progress” (month bar)
+     * A small “XP” counter (optional) that increments per completed exercise
+   * Simple XP rule:
+
+     * +1 XP per completed exercise
+     * +3 XP for completing entire session
+     * XP only drives visuals (level/chapters), no penalties.
+
+### Data and persistence
+
+* Store in `localStorage`:
+
+  * totalSessionsCompleted
+  * sessionsByDate (YYYY-MM-DD -> completed true/false)
+  * currentStreak, graceDaysUsedThisMonth
+  * badgesUnlocked (ids + timestamps)
+  * xpTotal, currentChapter, chapterProgress
+* Provide a “Reset motivation data” button hidden in a parent menu.
+
+### UX requirements
+
+* Badge cabinet screen:
+
+  * Grid of earned badges; locked ones shown as silhouettes
+  * Tapping shows “How to earn”
+* End screen:
+
+  * Shows newly earned badge(s) first, then stickers, then streak update
+* Tone:
+
+  * Positive and playful, no guilt language.
+
+### Acceptance criteria
+
+* Completing a session awards a sticker and updates total sessions.
+* Streak updates correctly and uses up to 2 grace days per month.
+* Badges unlock at the defined milestones and persist across reloads.
+* Journey (6 chapters) shows month progress and continues across 6 months.
+
+### Out of scope
+
+* Leaderboards
+* Sharing
+* Cloud sync
+
+## 16) Progress backup and restore (export/import)
+
+### Goal
+
+Allow parents to back up the child’s progress and restore it if the tablet data is cleared or the device changes, without needing a backend.
+
+### User stories
+
+* As a parent, I can export progress to a file so I don’t lose months of badges/streaks.
+* As a parent, I can import that file later to restore progress on the same or a different device.
+
+### Requirements
+
+1. **Export progress**
+
+   * Provide a “Parent” menu (small lock icon, simple passcode optional).
+   * Button: “Export progress”
+   * Action:
+
+     * Collect all stored app data (routine progress state + motivation data).
+     * Generate a single JSON file download, e.g. `penguin-steps-backup-YYYY-MM-DD.json`.
+   * Export must include:
+
+     * totalSessionsCompleted
+     * sessionsByDate
+     * streak state + grace days usage
+     * badgesUnlocked (ids + timestamps)
+     * xp/chapter progress
+     * current in-progress routine state (optional, but recommended)
+
+2. **Import progress**
+
+   * Button: “Import progress”
+   * Accept a `.json` file from the device.
+   * Validate:
+
+     * File is valid JSON
+     * Has expected schema/version field
+   * Show summary before applying:
+
+     * “This will restore X sessions, Y badges, streak Z”
+   * Apply:
+
+     * Replace current local data with imported data
+     * Refresh UI to reflect restored progress
+
+3. **Schema versioning**
+
+   * Include `schemaVersion` in exported file (e.g. `1`).
+   * On import:
+
+     * If schemaVersion is older, attempt a migration if possible.
+     * If unsupported, show a clear error.
+
+4. **Safety**
+
+   * “Reset progress” must require confirmation.
+   * Import must require confirmation because it overwrites existing data.
+   * No personally identifying data is required.
+
+### UX requirements
+
+* Parent menu is hidden from the child (small icon).
+* Export/import flows are simple, minimal text, clear warnings.
+* Provide a brief “How to back up” note:
+
+  * Suggest saving the file to iCloud Drive/Google Drive or emailing it to the parent.
+
+### Acceptance criteria
+
+* Export produces a downloadable JSON backup file with correct contents.
+* Import restores progress accurately on a fresh device/browser.
+* Import rejects invalid files and reports why.
+* Progress remains intact across page reloads after import.
+
+### Out of scope
+
+* Automatic cloud backups
+* Multi-user profiles
+
 
 # PRD Addendum: Per-leg order is Right then Left
 
