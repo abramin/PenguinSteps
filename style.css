@@ -407,6 +407,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
+  flex-shrink: 0; /* Prevent shrinking */
   /* Add a curved path SVG background if desired later */
 }
 
@@ -799,6 +800,63 @@ body {
     width: 70px;
     height: 70px;
   }
+
+  /* Reduce bottom path for tablets */
+  .bottom-path-area {
+    height: 90px;
+  }
+
+  .checkpoint {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+
+  .checkpoint.is-current {
+    transform: scale(1.2) translateY(-8px);
+  }
+}
+
+/* 9-inch Tablets in Landscape (typical dimensions) */
+@media (min-width: 769px) and (max-width: 1024px) and (max-height: 900px) {
+  .page-container {
+    padding: 10px;
+  }
+
+  .wood-header {
+    height: 65px;
+  }
+
+  .game-title {
+    font-size: 1.7rem;
+  }
+
+  .bottom-path-area {
+    height: 70px;
+  }
+
+  .checkpoint {
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
+  }
+
+  .checkpoint.is-current {
+    transform: scale(1.15) translateY(-6px);
+  }
+
+  .game-grid {
+    gap: 15px;
+    padding: 10px 0;
+  }
+
+  .parchment-card {
+    padding: 30px 40px;
+  }
+
+  .stone-path {
+    gap: 10px;
+  }
 }
 
 /* Short Screens / Laptops (max-height: 800px) */
@@ -843,12 +901,55 @@ body {
   }
 
   .bottom-path-area {
-    height: 80px;
+    height: 70px;
+  }
+
+  .checkpoint {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .checkpoint.is-current {
+    transform: scale(1.15) translateY(-6px);
+  }
+
+  .stone-path {
+    gap: 10px;
   }
 
   .rune-btn {
     width: 60px;
     height: 60px;
+  }
+}
+
+/* Very Short Screens (max-height: 700px) - for smaller tablets in landscape */
+@media (max-height: 700px) {
+  .bottom-path-area {
+    height: 60px;
+  }
+
+  .checkpoint {
+    width: 35px;
+    height: 35px;
+    font-size: 0.85rem;
+  }
+
+  .checkpoint.is-current {
+    transform: scale(1.1) translateY(-5px);
+  }
+
+  .stone-path {
+    gap: 8px;
+  }
+
+  .wood-header {
+    height: 55px;
+  }
+
+  .game-title {
+    font-size: 1.4rem;
   }
 }
 
