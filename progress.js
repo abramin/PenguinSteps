@@ -3,7 +3,15 @@
 // ============================================
 // Data Layer (Duplicated/Shared from app.js)
 // ============================================
+// ============================================
+// Data Layer (Duplicated/Shared from app.js)
+// ============================================
 const MOTIVATION_KEY = 'wolfwalkers_motivation_v1';
+const STORAGE_NAMESPACE = 'wolfwalkers_';
+const APP_STORAGE_KEYS = {
+    state: STORAGE_NAMESPACE + 'state',
+    completedSteps: STORAGE_NAMESPACE + 'completedSteps',
+};
 
 // Badge Definitions (Duplicate)
 const BADGES = [
@@ -78,7 +86,14 @@ const elements = {
     graceDaysValue: document.getElementById('graceDaysValue'),
     journeyMap: document.getElementById('journeyMap'),
     xpDisplay: document.getElementById('xpDisplay'),
-    stickersGrid: document.getElementById('stickersGrid')
+    stickersGrid: document.getElementById('stickersGrid'),
+    // Parent Menu Elements
+    parentMenuOverlay: document.getElementById('parentMenuOverlay'),
+    closeParentMenu: document.getElementById('closeParentMenu'),
+    exportBtn: document.getElementById('exportBtn'),
+    importBtn: document.getElementById('importBtn'),
+    importFileInput: document.getElementById('importFileInput'),
+    resetDataBtn: document.getElementById('resetDataBtn')
 };
 
 function init() {
@@ -236,13 +251,149 @@ function setupNavigation() {
         window.location.href = 'index.html';
     });
 
+    // Parent Settings Menu
     elements.settingsBtn.addEventListener('click', () => {
-        if (confirm("Reset all motivation data (Badges, Streaks, etc.)? This cannot be undone.")) {
+        elements.parentMenuOverlay.classList.add('active');
+    });
+
+    elements.closeParentMenu.addEventListener('click', () => {
+        elements.parentMenuOverlay.classList.remove('active');
+    });
+
+    // Close on click outside
+    elements.parentMenuOverlay.addEventListener('click', (e) => {
+        if (e.target === elements.parentMenuOverlay) {
+            elements.parentMenuOverlay.classList.remove('active');
+        }
+    });
+
+    // Reset Data
+    elements.resetDataBtn.addEventListener('click', () => {
+        if (confirm("WARNING: This will delete ALL progress, including stickers, badges, and streaks. This cannot be undone.\n\nAre you sure?")) {
             motivationState = { ...defaultMotivationState };
             saveMotivationData();
+            // Also clear app state
+            localStorage.removeItem(APP_STORAGE_KEYS.state);
+            localStorage.removeItem(APP_STORAGE_KEYS.completedSteps);
+
+            alert("All data has been reset.");
             window.location.reload();
         }
     });
+
+    // Export
+    elements.exportBtn.addEventListener('click', exportBackup);
+
+    // Import
+    elements.importBtn.addEventListener('click', () => {
+        elements.importFileInput.click();
+    });
+
+    elements.importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            importBackup(file);
+        }
+        // Reset input so same file can be selected again if needed
+        e.target.value = '';
+    });
+}
+
+// ============================================
+// Backup System
+// ============================================
+
+function exportBackup() {
+    try {
+        const backupData = {
+            schemaVersion: 1,
+            backupDate: new Date().toISOString(),
+            data: {
+                motivation: motivationState,
+                appState: localStorage.getItem(APP_STORAGE_KEYS.state) ? JSON.parse(localStorage.getItem(APP_STORAGE_KEYS.state)) : null,
+                completedSteps: localStorage.getItem(APP_STORAGE_KEYS.completedSteps) ? JSON.parse(localStorage.getItem(APP_STORAGE_KEYS.completedSteps)) : []
+            }
+        };
+
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = `penguin-steps-backup-${dateStr}.json`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+    } catch (e) {
+        console.error("Export failed:", e);
+        alert("Failed to create backup file found.");
+    }
+}
+
+function importBackup(file) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const content = e.target.result;
+            const backup = JSON.parse(content);
+
+            // Basic Validation
+            if (!backup.schemaVersion || !backup.data) {
+                throw new Error("Invalid backup file format (missing schema version or data).");
+            }
+
+            if (backup.schemaVersion !== 1) {
+                alert(`Warning: This backup version (${backup.schemaVersion}) might not be fully supported. Trying anyway...`);
+            }
+
+            const data = backup.data;
+            const sessions = data.motivation?.totalSessionsCompleted || 0;
+            const badges = data.motivation?.badgesUnlocked?.length || 0;
+            const date = backup.backupDate ? new Date(backup.backupDate).toLocaleDateString() : "Unknown date";
+
+            const msg = `Found backup from ${date}.\n\nContains:\n- ${sessions} Sessions\n- ${badges} Badges\n\nThis will OVERWRITE your current progress. Are you sure?`;
+
+            if (confirm(msg)) {
+                // Restore Motivation
+                if (data.motivation) {
+                    motivationState = { ...defaultMotivationState, ...data.motivation };
+                    saveMotivationData();
+                }
+
+                // Restore App State
+                if (data.appState) {
+                    localStorage.setItem(APP_STORAGE_KEYS.state, JSON.stringify(data.appState));
+                } else {
+                    localStorage.removeItem(APP_STORAGE_KEYS.state);
+                }
+
+                if (data.completedSteps) {
+                    localStorage.setItem(APP_STORAGE_KEYS.completedSteps, JSON.stringify(data.completedSteps));
+                } else {
+                    localStorage.removeItem(APP_STORAGE_KEYS.completedSteps);
+                }
+
+                alert("Backup restored successfully!");
+                window.location.reload();
+            }
+
+        } catch (err) {
+            console.error("Import error:", err);
+            alert("Failed to import backup: " + err.message);
+        }
+    };
+
+    reader.onerror = () => {
+        alert("Error reading file.");
+    };
+
+    reader.readAsText(file);
 }
 
 // Initialization
