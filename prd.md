@@ -26,6 +26,7 @@ Key rule changes (per your preferences):
 2. As a child, after **Strength** work I can rest, and the app waits for me to press “Ready” to continue.
 3. As a child, I can see progress in a fun way (stickers/stars/checkpoints).
 4. As a parent, I can adjust sets, seconds, or reps in one place.
+5. As a parent or child, I can restart the routine, skip forward, or move back through exercises.
 
 ## 5) Routine definition (initial content)
 
@@ -222,6 +223,7 @@ MVP:
 
   * Between strength sets
   * Between strength exercises
+* The user can restart the routine, skip forward, and move back through exercises.
 * No rest overlay for Stretch or Balance.
 * Overall progress remains visible and updates correctly.
 * Refresh allows resuming.

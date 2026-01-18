@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Penguin Steps</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-title">Penguin Steps</div>
+          <div class="brand-subtitle">Local exercise routine</div>
+        </div>
+        <div class="header-progress">
+          <div class="progress-label" id="progressLabel">Checkpoint 1 of 9</div>
+          <div class="progress-bar" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="card exercise-card" id="exerciseCard" aria-live="polite">
+          <div class="badge" id="typeBadge">Stretch</div>
+          <h1 class="exercise-name" id="exerciseName">Wall Calf Stretch</h1>
+          <p class="exercise-purpose" id="exercisePurpose"></p>
+          <p class="exercise-instructions" id="exerciseInstructions"></p>
+
+          <div class="set-row">
+            <div class="set-status" id="setStatus">Set 1 of 3</div>
+            <div class="side-indicator" id="sideIndicator">Right</div>
+          </div>
+
+          <div class="timer-area" id="timerArea">
+            <div class="timer-value" id="timerValue">00:30</div>
+            <div class="timer-label" id="timerLabel">timer</div>
+            <button class="primary" id="primaryAction">Start</button>
+          </div>
+        </section>
+
+        <aside class="card path-card">
+          <div class="path-header">
+            <div class="path-title">Path</div>
+            <div class="path-subtitle">9 checkpoints</div>
+          </div>
+          <ol class="path" id="checkpointPath"></ol>
+        </aside>
+      </main>
+
+      <section class="controls" aria-label="Controls">
+        <button class="control" id="pauseButton" disabled>Pause</button>
+        <button class="control" id="resumeButton" hidden>Resume</button>
+        <button class="control" id="backButton">Back</button>
+        <button class="control" id="skipButton">Skip</button>
+        <button class="control" id="restartButton">Restart</button>
+      </section>
+    </div>
+
+    <div class="overlay hidden" id="restOverlay" aria-hidden="true">
+      <div class="overlay-card">
+        <h2>Nice work! Rest if you want.</h2>
+        <p id="restNext">Up next: Set 2</p>
+        <button class="primary" id="readyButton">Ready</button>
+      </div>
+    </div>
+  </body>
+</html>

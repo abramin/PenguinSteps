@@ -1,0 +1,351 @@
+:root {
+  --sky: #6bd0f6;
+  --sun: #ffd166;
+  --peach: #ffadad;
+  --leaf: #75d77f;
+  --berry: #ff6b6b;
+  --ink: #2f2f3a;
+  --paper: #fff7e6;
+  --card: #ffffff;
+  --shadow: rgba(47, 47, 58, 0.18);
+  --badge-stretch: #3aaed8;
+  --badge-strength: #ff8c61;
+  --badge-gait: #7bc96f;
+  --badge-balance: #7a6ff0;
+  --badge-fun: #ffb703;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Comic Sans MS", "Marker Felt", "Bradley Hand", "Chalkboard SE",
+    "Segoe Print", "Trebuchet MS", cursive, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.5), transparent 50%),
+    linear-gradient(135deg, var(--sky) 0%, var(--sun) 45%, var(--peach) 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.brand-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand-subtitle {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.header-progress {
+  display: grid;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.progress-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(47, 47, 58, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--leaf), var(--sun));
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 18px 40px -20px var(--shadow);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.exercise-card {
+  display: grid;
+  gap: 16px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--badge-stretch);
+  color: #fff;
+  width: fit-content;
+}
+
+.badge.type-stretch {
+  background: var(--badge-stretch);
+}
+
+.badge.type-strength {
+  background: var(--badge-strength);
+}
+
+.badge.type-gait {
+  background: var(--badge-gait);
+}
+
+.badge.type-balance {
+  background: var(--badge-balance);
+}
+
+.badge.type-fun {
+  background: var(--badge-fun);
+}
+
+.exercise-name {
+  margin: 0;
+  font-size: 2.2rem;
+}
+
+.exercise-purpose {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.exercise-instructions {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.set-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.side-indicator {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.timer-area {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  background: var(--paper);
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.timer-value {
+  font-size: 3.2rem;
+  font-weight: 700;
+}
+
+.timer-label {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.primary {
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: none;
+  background: var(--berry);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -12px rgba(255, 107, 107, 0.8);
+}
+
+.primary:active {
+  transform: translateY(1px);
+}
+
+.path-card {
+  display: grid;
+  gap: 16px;
+}
+
+.path-header {
+  display: grid;
+  gap: 4px;
+}
+
+.path-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.path-subtitle {
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.checkpoint {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px dashed rgba(47, 47, 58, 0.25);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.checkpoint.is-current {
+  border-style: solid;
+  border-color: var(--berry);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+}
+
+.checkpoint.is-done {
+  background: rgba(117, 215, 127, 0.4);
+  border-color: var(--leaf);
+}
+
+.controls {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.control {
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 2px solid rgba(47, 47, 58, 0.2);
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.control[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(47, 47, 58, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-card {
+  background: #fff;
+  padding: 28px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 18px 40px -20px var(--shadow);
+}
+
+.overlay-card h2 {
+  margin: 0 0 12px;
+}
+
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-title {
+    font-size: 2rem;
+  }
+
+  .timer-value {
+    font-size: 2.6rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px 16px 32px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .controls {
+    justify-content: flex-start;
+  }
+}
