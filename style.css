@@ -687,19 +687,48 @@ body {
 /* Tablet Portrait & Mobile (max-width: 768px) */
 @media (max-width: 768px) {
   .page-container {
-    padding: 10px;
+    padding: 8px;
   }
 
   .wood-header {
-    height: 60px;
+    height: 70px;
+    padding: 5px;
   }
 
   .game-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+    margin-top: 5px;
   }
 
   .header-progress {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  /* Header buttons - smaller and better positioned */
+  .wood-header .rune-btn {
+    width: 40px !important;
+    height: 40px !important;
+    top: 10px !important;
+  }
+
+  .wood-header .rune-btn span {
+    font-size: 1.2rem !important;
+  }
+
+  /* Trophy button */
+  .wood-header button[aria-label="Achievements"] {
+    right: 10px !important;
+  }
+
+  /* Audio controls */
+  .wood-header > div[style*="left"] {
+    left: 10px !important;
+    gap: 5px !important;
+  }
+
+  .progress-bar {
+    height: 4px;
+    margin-top: 3px;
   }
 
   .game-grid {
@@ -716,15 +745,56 @@ body {
     gap: 30px;
   }
 
-  /* Order controls below card on mobile if desired, or keep as is. 
-     Flex order: 1=top, 2=middle, 3=bottom. 
-     Default is 0. Let's make card top, controls bottom. 
+  /* Order controls below card on mobile if desired, or keep as is.
+     Flex order: 1=top, 2=middle, 3=bottom.
+     Default is 0. Let's make card top, controls bottom.
   */
   .parchment-card {
     order: 1;
     width: 100%;
     min-height: auto;
-    padding: 40px 20px;
+    padding: 30px 15px;
+  }
+
+  .exercise-title {
+    font-size: 1.6rem;
+    padding-bottom: 8px;
+  }
+
+  .exercise-desc {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .exercise-visual img {
+    max-height: 150px;
+  }
+
+  .metric-value {
+    font-size: 2.8rem;
+  }
+
+  .metric-label {
+    font-size: 0.9rem;
+  }
+
+  .wood-btn {
+    padding: 10px 25px;
+    font-size: 1.2rem;
+  }
+
+  .set-info {
+    font-size: 1rem;
+  }
+
+  .wolf-icon {
+    font-size: 1.2rem;
+  }
+
+  .side-rune {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
   }
 
   .controls-left {
@@ -748,6 +818,10 @@ body {
     font-size: 1.8rem;
   }
 
+  .rune-label {
+    font-size: 1rem;
+  }
+
   .stone-path::before {
     display: none;
     /* Hide connector on mobile if crowding */
@@ -765,23 +839,69 @@ body {
 
   /* End screen responsive */
   .end-screen {
-    padding: 30px 20px;
+    padding: 25px 15px;
+    max-width: 95vw;
   }
 
   .wolf-icon-large {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
 
   .end-screen h2 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 
   .stat-item .stat-value {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .stat-item .stat-label {
+    font-size: 0.85rem;
   }
 
   .completion-stats {
-    gap: 20px;
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  .farewell-message {
+    font-size: 1.1rem;
+  }
+
+  /* Modal improvements for mobile */
+  .parchment-modal {
+    padding: 25px 15px;
+    max-width: 90vw;
+    width: 90%;
+  }
+
+  .parchment-modal h2 {
+    font-size: 1.5rem;
+  }
+
+  .parchment-modal p {
+    font-size: 1.1rem;
+  }
+
+  .resume-buttons {
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  /* Spirits - reduce size on mobile */
+  .wolf-spirit {
+    width: 150px;
+    height: 100px;
+  }
+
+  .spirit-1 {
+    top: 5%;
+    left: 2%;
+  }
+
+  .spirit-2 {
+    bottom: 10%;
+    right: 2%;
   }
 }
 
@@ -1217,5 +1337,207 @@ body {
   .new-badge img {
     width: 50px;
     height: 50px;
+  }
+}
+
+/* ============================================
+   Extra Small Phones (max-width: 375px)
+   ============================================ */
+@media (max-width: 375px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .page-container {
+    padding: 5px;
+    overflow-y: auto;
+  }
+
+  .wood-header {
+    height: 65px;
+  }
+
+  .game-title {
+    font-size: 1.1rem;
+  }
+
+  .header-progress {
+    font-size: 0.7rem;
+  }
+
+  /* Smaller header buttons for tiny screens */
+  .wood-header .rune-btn {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  .wood-header .rune-btn span {
+    font-size: 1rem !important;
+  }
+
+  .parchment-card {
+    padding: 20px 10px;
+  }
+
+  .exercise-title {
+    font-size: 1.3rem;
+  }
+
+  .exercise-desc {
+    font-size: 1rem;
+  }
+
+  .exercise-visual img {
+    max-height: 120px;
+  }
+
+  .metric-value {
+    font-size: 2.2rem;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+
+  .wood-btn {
+    padding: 8px 20px;
+    font-size: 1.1rem;
+  }
+
+  .set-info {
+    font-size: 0.9rem;
+  }
+
+  .side-rune {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .rune-btn {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .rune-symbol {
+    font-size: 1.5rem !important;
+  }
+
+  .rune-label {
+    font-size: 0.9rem;
+  }
+
+  .controls-left,
+  .controls-right {
+    gap: 20px;
+  }
+
+  .checkpoint {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .checkpoint.is-current {
+    transform: scale(1.2) translateY(-8px);
+  }
+
+  .bottom-path-area {
+    height: 70px;
+  }
+
+  .stone-path {
+    gap: 8px;
+  }
+
+  /* Modals for tiny screens */
+  .parchment-modal {
+    padding: 20px 12px;
+    max-width: 95vw;
+  }
+
+  .parchment-modal h2 {
+    font-size: 1.3rem;
+  }
+
+  .parchment-modal p {
+    font-size: 1rem;
+  }
+
+  .end-screen {
+    padding: 20px 12px;
+  }
+
+  .end-screen h2 {
+    font-size: 1.3rem;
+  }
+
+  .wolf-icon-large {
+    font-size: 2rem;
+  }
+
+  .stat-item .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-item .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .completion-stats {
+    gap: 12px;
+  }
+
+  .farewell-message {
+    font-size: 1rem;
+  }
+
+  .new-badges-msg {
+    font-size: 1.2rem;
+  }
+
+  .new-badge {
+    width: 65px;
+  }
+
+  .new-badge img {
+    width: 45px;
+    height: 45px;
+  }
+
+  .new-badge p {
+    font-size: 0.7rem;
+  }
+
+  /* Wolf spirits even smaller */
+  .wolf-spirit {
+    width: 100px;
+    height: 66px;
+    opacity: 0.4;
+  }
+
+  /* PWA elements for tiny screens */
+  .connection-indicator {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+
+  .update-banner {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    align-items: stretch;
+  }
+
+  .update-message {
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .update-btn {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    width: 100%;
   }
 }

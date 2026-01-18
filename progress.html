@@ -351,6 +351,264 @@
         cursor: pointer;
         color: #5d4037;
       }
+
+      /* ============================================
+         Mobile Responsive Styles for Progress Page
+         ============================================ */
+
+      /* Tablet and Mobile (max-width: 768px) */
+      @media (max-width: 768px) {
+        .progress-header {
+          padding: 0 10px;
+        }
+
+        .nav-btn {
+          font-size: 1rem;
+        }
+
+        .settings-btn {
+          font-size: 1.3rem;
+        }
+
+        .tab-container {
+          margin: 15px auto;
+          padding: 0 5px;
+        }
+
+        .tabs {
+          gap: 5px;
+        }
+
+        .tab {
+          padding: 8px 12px;
+          font-size: 1rem;
+        }
+
+        .tab.active {
+          padding-top: 12px;
+        }
+
+        .tab-content {
+          padding: 20px 15px;
+          min-height: 300px;
+        }
+
+        .tab-pane h2 {
+          font-size: 1.5rem;
+        }
+
+        /* Badges Grid - 3 columns on mobile */
+        .badge-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          padding: 5px;
+        }
+
+        .badge-item {
+          padding: 8px;
+        }
+
+        .badge-item img {
+          width: 60px;
+          height: 60px;
+        }
+
+        .badge-name {
+          font-size: 0.75rem;
+        }
+
+        /* Streak Calendar - smaller cards */
+        .streak-calendar {
+          gap: 6px;
+        }
+
+        .day-card {
+          width: 40px;
+          height: 60px;
+        }
+
+        .day-name {
+          font-size: 0.7rem;
+        }
+
+        .day-status {
+          font-size: 1.2rem;
+        }
+
+        .streak-stats-row {
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        /* Journey */
+        .chapter-row {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 12px;
+        }
+
+        .chapter-icon {
+          font-size: 1.5rem;
+        }
+
+        .chapter-title {
+          font-size: 0.95rem;
+        }
+
+        /* Stickers - 4 columns on mobile */
+        .stickers-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+        }
+
+        .sticker-item {
+          width: 70px;
+          height: 70px;
+        }
+
+        .sticker-item img {
+          width: 50px;
+          height: 50px;
+        }
+
+        /* Modal */
+        .menu-modal {
+          padding: 20px 15px;
+          width: 90%;
+        }
+
+        .menu-modal h2 {
+          font-size: 1.4rem;
+        }
+
+        .menu-btn {
+          font-size: 0.95rem;
+          padding: 10px;
+        }
+      }
+
+      /* Extra Small Phones (max-width: 375px) */
+      @media (max-width: 375px) {
+        .progress-header {
+          padding: 0 5px;
+        }
+
+        .nav-btn {
+          font-size: 0.9rem;
+          gap: 3px;
+        }
+
+        .settings-btn {
+          font-size: 1.1rem;
+        }
+
+        .tab {
+          padding: 6px 8px;
+          font-size: 0.9rem;
+        }
+
+        .tab.active {
+          padding-top: 10px;
+        }
+
+        .tab-content {
+          padding: 15px 10px;
+        }
+
+        .tab-pane h2 {
+          font-size: 1.3rem;
+        }
+
+        /* Badges Grid - 2 columns on tiny screens */
+        .badge-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+
+        .badge-item img {
+          width: 50px;
+          height: 50px;
+        }
+
+        .badge-name {
+          font-size: 0.7rem;
+        }
+
+        .badge-desc {
+          width: 120px;
+          font-size: 0.7rem;
+          padding: 4px 8px;
+        }
+
+        /* Streak Calendar - even smaller */
+        .streak-calendar {
+          gap: 4px;
+        }
+
+        .day-card {
+          width: 35px;
+          height: 55px;
+        }
+
+        .day-name {
+          font-size: 0.65rem;
+        }
+
+        .day-status {
+          font-size: 1rem;
+        }
+
+        .streak-stats-row {
+          gap: 15px;
+        }
+
+        /* Journey */
+        .chapter-icon {
+          font-size: 1.3rem;
+        }
+
+        .chapter-title {
+          font-size: 0.85rem;
+        }
+
+        .chapter-progress-bar {
+          height: 8px;
+        }
+
+        /* Stickers - 3 columns on tiny screens */
+        .stickers-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+
+        .sticker-item {
+          width: 60px;
+          height: 60px;
+        }
+
+        .sticker-item img {
+          width: 45px;
+          height: 45px;
+        }
+
+        /* Modal */
+        .menu-modal {
+          padding: 15px 12px;
+        }
+
+        .menu-modal h2 {
+          font-size: 1.2rem;
+        }
+
+        .menu-modal p {
+          font-size: 0.85rem;
+        }
+
+        .menu-btn {
+          font-size: 0.85rem;
+          padding: 8px;
+        }
+      }
     </style>
     <!-- Parent Menu Overlay -->
     <div id="parentMenuOverlay" class="overlay">
