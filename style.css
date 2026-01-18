@@ -33,6 +33,21 @@ body {
   overflow: hidden;
 }
 
+/* PWA Standalone mode adjustments */
+@media (display-mode: standalone) {
+  body {
+    /* Ensure proper sizing in standalone mode */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  .page-container {
+    /* Better sizing for installed PWA */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}
+
 /* Container */
 .page-container {
   display: flex;

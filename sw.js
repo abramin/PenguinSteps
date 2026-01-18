@@ -3,7 +3,7 @@
 // PWA Offline Support
 // ============================================
 
-const CACHE_VERSION = 'penguin-steps-v2';
+const CACHE_VERSION = 'penguin-steps-v3';
 
 // Assets to precache on install
 const PRECACHE_ASSETS = [
@@ -106,13 +106,17 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Strategy: stale-while-revalidate for index.html
-    if (event.request.mode === 'navigate' || url.pathname.endsWith('index.html') || url.pathname === '/') {
+    // Strategy: stale-while-revalidate for HTML, CSS, and JS
+    if (event.request.mode === 'navigate' ||
+        url.pathname.endsWith('.html') ||
+        url.pathname.endsWith('.css') ||
+        url.pathname.endsWith('.js') ||
+        url.pathname === '/') {
         event.respondWith(staleWhileRevalidate(event.request));
         return;
     }
 
-    // Strategy: cache-first for all other assets (css, js, images)
+    // Strategy: cache-first for static assets (images, fonts, etc)
     event.respondWith(cacheFirst(event.request));
 });
 
