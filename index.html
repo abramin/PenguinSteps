@@ -32,6 +32,17 @@
           <button class="rune-btn" onclick="window.location.href='progress.html'" style="width: 50px; height: 50px; position: absolute; right: 20px; top: 15px;" aria-label="Achievements">
             <span style="font-size: 1.5rem;">🏆</span>
           </button>
+          
+          <!-- Audio Controls -->
+          <div style="position: absolute; left: 20px; top: 15px; display: flex; gap: 10px; z-index: 100;">
+            <button class="rune-btn" id="musicToggleBtn" style="width: 50px; height: 50px; padding: 0;" aria-label="Toggle Music">
+              <span style="font-size: 1.5rem;">🎵</span>
+            </button>
+            <button class="rune-btn hidden" id="skipTrackBtn" style="width: 50px; height: 50px; padding: 0;" aria-label="Skip Track">
+              <span style="font-size: 1.5rem;">⏭️</span>
+            </button>
+          </div>
+
           <h1 class="game-title">Wolfwalkers' Journey</h1>
           <div class="header-progress">
             <div class="progress-label" id="progressLabel">Checkpoint 1 of 9</div>

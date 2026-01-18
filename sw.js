@@ -3,7 +3,7 @@
 // PWA Offline Support
 // ============================================
 
-const CACHE_VERSION = 'penguin-steps-v1';
+const CACHE_VERSION = 'penguin-steps-v2';
 
 // Assets to precache on install
 const PRECACHE_ASSETS = [
@@ -65,7 +65,8 @@ self.addEventListener('install', (event) => {
             })
             .then(() => {
                 console.log('[SW] Precache complete');
-                // Don't skip waiting automatically - let the app control when to update
+                // Force immediate activation for this update to fix stale cache issues
+                return self.skipWaiting();
             })
             .catch((error) => {
                 console.error('[SW] Precache failed:', error);

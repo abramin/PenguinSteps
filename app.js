@@ -105,6 +105,142 @@ const routine = [
   },
 ];
 
+
+// ============================================
+// Audio Configuration & Logic
+// ============================================
+const MUSIC_DEFAULT_ENABLED = false;
+const MUSIC_VOLUME_NORMAL = 0.5;
+const MUSIC_VOLUME_DUCKED = 0.1;
+const DUCK_FADE_TIME = 500; // ms
+
+// Available tracks in assets/music/
+const MUSIC_PLAYLIST = [
+  "assets/music/Run Like A Story.mp3",
+  "assets/music/Running With Shadows.mp3",
+  "assets/music/Running With The Pack.mp3",
+  "assets/music/Running with the Wild Sky.mp3",
+  "assets/music/Stronger Every Lap.mp3"
+];
+
+const CUES = {
+  beep: "assets/cues/beep.wav",
+  cheer: "assets/cues/cheer.wav"
+};
+
+class AudioManager {
+  constructor() {
+    this.musicEnabled = localStorage.getItem('wolfwalkers_music_enabled') === 'true';
+    this.currentTrackIndex = -1;
+    this.audioMusic = new Audio();
+    this.audioMusic.loop = false;
+    this.audioMusic.volume = MUSIC_VOLUME_NORMAL;
+
+    // Shuffle playlist initially
+    this.playlist = [...MUSIC_PLAYLIST].sort(() => Math.random() - 0.5);
+
+    this.audioMusic.addEventListener('ended', () => this.nextTrack());
+
+    this.cues = {};
+    for (const [key, path] of Object.entries(CUES)) {
+      this.cues[key] = new Audio(path);
+    }
+    this.activeCues = 0;
+  }
+
+  init() {
+    // Call this on first user interaction to unlock AudioContext if needed
+    // For simple Audio elements, mainly ensures we can play.
+    if (this.musicEnabled && this.audioMusic.paused) {
+      this.playMusic();
+    }
+  }
+
+  toggleMusic() {
+    this.musicEnabled = !this.musicEnabled;
+    localStorage.setItem('wolfwalkers_music_enabled', this.musicEnabled);
+
+    if (this.musicEnabled) {
+      this.playMusic();
+    } else {
+      this.audioMusic.pause();
+    }
+    this.updateUI();
+  }
+
+  playMusic() {
+    if (!this.musicEnabled) return;
+
+    if (!this.audioMusic.src || this.audioMusic.src === '') {
+      this.nextTrack();
+    } else {
+      this.audioMusic.play().catch(e => console.log("Audio play failed (interaction needed?):", e));
+    }
+    // Show skip button when music is active
+    if (elements.skipTrackBtn) elements.skipTrackBtn.classList.remove('hidden');
+  }
+
+  nextTrack() {
+    this.currentTrackIndex = (this.currentTrackIndex + 1) % this.playlist.length;
+    this.audioMusic.src = this.playlist[this.currentTrackIndex];
+    if (this.musicEnabled) {
+      this.audioMusic.play().catch(e => console.log("Next track play failed:", e));
+    }
+  }
+
+  playCue(cueName) {
+    const cue = this.cues[cueName];
+    if (!cue) return;
+
+    // Increment active cues
+    this.activeCues++;
+
+    // Duck if this is the first active cue
+    if (this.activeCues === 1 && this.musicEnabled && !this.audioMusic.paused) {
+      this.duckMusic(true);
+    }
+
+    // Handle completion
+    const onEnded = () => {
+      this.activeCues--;
+      if (this.activeCues <= 0) {
+        this.activeCues = 0;
+        this.duckMusic(false);
+      }
+      cue.removeEventListener('ended', onEnded);
+    };
+
+    cue.addEventListener('ended', onEnded);
+
+    cue.currentTime = 0;
+    cue.play().catch(e => console.log("Cue play failed:", e));
+  }
+
+  duckMusic(duck) {
+    if (!this.audioMusic) return;
+    // Simple volume jump for now, can animate if needed
+    this.audioMusic.volume = duck ? MUSIC_VOLUME_DUCKED : MUSIC_VOLUME_NORMAL;
+  }
+
+  updateUI() {
+    const btn = document.getElementById('musicToggleBtn');
+    const skipBtn = document.getElementById('skipTrackBtn');
+    if (btn) {
+      // Visual state could be opacity or icon change
+      btn.style.opacity = this.musicEnabled ? "1.0" : "0.5";
+      // Optional: Change text if we added a span
+    }
+    if (skipBtn) {
+      if (this.musicEnabled) skipBtn.classList.remove('hidden');
+      else skipBtn.classList.add('hidden');
+    }
+  }
+}
+
+const audioManager = new AudioManager();
+
+// function playCelebrationSound() { ... } // Removed
+
 // ============================================
 // State Management
 // ============================================
@@ -118,6 +254,7 @@ const state = {
   // Timer state
   timerRunning: false,
   timerPaused: false,
+  timerCountingDown: false,
   secondsRemaining: 0,
   timerIntervalId: null,
   // Routine timing
@@ -473,6 +610,9 @@ const elements = {
   resumeOverlay: document.getElementById("resumeOverlay"),
   resumeSessionBtn: document.getElementById("resumeSessionBtn"),
   startFreshBtn: document.getElementById("startFreshBtn"),
+  // Audio
+  musicToggleBtn: document.getElementById("musicToggleBtn"),
+  skipTrackBtn: document.getElementById("skipTrackBtn"),
 };
 
 const typeClassMap = {
@@ -512,58 +652,43 @@ function getMetricForStep(step) {
 }
 
 // ============================================
-// Audio System
+// Audio System (Replaced by AudioManager)
 // ============================================
-
-let audioContext = null;
-
-function initAudio() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-}
-
-function playBeep() {
-  if (!audioContext) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.frequency.value = 440; // A4 note
-  oscillator.type = "sine";
-
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.1);
-}
-
-function playCompletionBeep() {
-  if (!audioContext) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.frequency.value = 880; // A5 note (higher)
-  oscillator.type = "sine";
-
-  gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.2);
-}
 
 // ============================================
 // Timer System
 // ============================================
+
+function startCountdown(onComplete) {
+  let count = 3;
+  const timerValue = elements.timerValue;
+
+  state.timerCountingDown = true;
+  state.timerRunning = false; // Not running the exercise timer yet
+  render(); // Update UI to "Starting..." or similar
+
+  // Optional: Update UI to show countdown overlay or just use timer text
+  timerValue.textContent = count;
+  audioManager.playCue('beep');
+
+  // Add class for count style
+  timerValue.classList.add('timer-running');
+
+  let countdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      timerValue.textContent = count;
+      audioManager.playCue('beep');
+    } else {
+      clearInterval(countdownInterval);
+      if (timerValue) timerValue.textContent = "Go!";
+      setTimeout(() => {
+        state.timerCountingDown = false;
+        onComplete();
+      }, 500);
+    }
+  }, 1000);
+}
 
 function initializeTimer() {
   const step = getCurrentStep();
@@ -587,6 +712,7 @@ function startTimer() {
 
   state.timerRunning = true;
   state.timerPaused = false;
+  render(); // Update UI to show Pause button
 
   let lastTickTime = Date.now();
   let fractionalSeconds = 0;
@@ -604,7 +730,7 @@ function startTimer() {
 
       // Play beep in last 3 seconds
       if (state.secondsRemaining <= 3 && state.secondsRemaining > 0) {
-        playBeep();
+        audioManager.playCue('beep');
       }
 
       updateTimerDisplay();
@@ -651,7 +777,7 @@ function stopTimer() {
 
 function onTimerComplete() {
   stopTimer();
-  playCompletionBeep();
+  // audioManager.playCue('cheer'); // Removed
 
   const step = getCurrentStep();
 
@@ -858,6 +984,9 @@ function render() {
     } else if (state.timerPaused) {
       elements.primaryAction.textContent = "Resume Timer";
       elements.primaryAction.disabled = false;
+    } else if (state.timerCountingDown) {
+      elements.primaryAction.textContent = "Starting...";
+      elements.primaryAction.disabled = true;
     } else {
       elements.primaryAction.textContent = "Start Timer";
       elements.primaryAction.disabled = false;
@@ -1016,7 +1145,8 @@ function showEndScreen() {
   elements.endOverlay.setAttribute("aria-hidden", "false");
 
   // Play celebration sound
-  playCelebrationSound();
+  // Play celebration sound
+  // audioManager.playCue('cheer');
 }
 
 function hideEndScreen() {
@@ -1242,11 +1372,17 @@ function handlePrimaryAction() {
   if (!state.started) {
     state.started = true;
     state.routineStartTime = Date.now(); // Track when routine started
-    initAudio(); // Initialize audio on first user interaction
+    audioManager.init(); // Initialize audio on first user interaction
 
     if (step.mode === "timed") {
       initializeTimer();
-      startTimer();
+      startCountdown(() => {
+        startTimer();
+      });
+    } else {
+      // For non-timed, just start
+      // Maybe play a start beep too?
+      audioManager.playCue('beep');
     }
     render();
     return;
@@ -1262,7 +1398,9 @@ function handlePrimaryAction() {
     }
     // Timer not started (e.g., after going back) - start it
     initializeTimer();
-    startTimer();
+    startCountdown(() => {
+      startTimer();
+    });
     render();
     return;
   }
@@ -1300,7 +1438,7 @@ elements.resumeSessionBtn.addEventListener("click", () => {
   const savedData = loadSession();
   if (savedData) {
     restoreSession(savedData);
-    initAudio(); // Initialize audio context
+    audioManager.init(); // Initialize audio context
   }
   hideResumeOverlay();
   render();
@@ -1370,6 +1508,17 @@ navigator.serviceWorker?.addEventListener('message', (event) => {
     showUpdateBanner();
   }
 });
+
+// Audio Listeners
+if (elements.musicToggleBtn) {
+  elements.musicToggleBtn.addEventListener('click', () => audioManager.toggleMusic());
+}
+if (elements.skipTrackBtn) {
+  elements.skipTrackBtn.addEventListener('click', () => audioManager.nextTrack());
+}
+
+// Initial UI Audio State
+audioManager.updateUI();
 
 // ============================================
 // Online/Offline Indicator

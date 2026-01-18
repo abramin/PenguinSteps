@@ -496,6 +496,7 @@ body {
   /* Needs explicit height to show background image */
   background: url('assets/wolf_spirit_blue.png') no-repeat center;
   background-size: contain;
+  -webkit-mix-blend-mode: screen;
   mix-blend-mode: screen;
   /* Removes black bg */
   opacity: 0.7;
