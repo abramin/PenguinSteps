@@ -115,6 +115,11 @@ const state = {
   currentSide: routine[0].perSide ? "Right" : null,
   started: false,
   currentRep: 0, // For rep counting display
+  // Timer state
+  timerRunning: false,
+  timerPaused: false,
+  secondsRemaining: 0,
+  timerIntervalId: null,
 };
 
 const completedSteps = new Set();
@@ -132,6 +137,9 @@ const elements = {
   exercisePurpose: document.getElementById("exercisePurpose"),
   exerciseInstructions: document.getElementById("exerciseInstructions"),
   exerciseImage: document.getElementById("exerciseImage"),
+  sideVisuals: document.getElementById("sideVisuals"),
+  runeLeft: document.getElementById("runeLeft"),
+  runeRight: document.getElementById("runeRight"),
   setStatus: document.getElementById("setStatus"),
   setBadge: document.getElementById("setBadge"),
   sideIndicator: document.getElementById("sideIndicator"),
@@ -185,6 +193,218 @@ function getMetricForStep(step) {
   }
 
   return { value: "--", label: "", type: "unknown" };
+}
+
+// ============================================
+// Audio System
+// ============================================
+
+let audioContext = null;
+
+function initAudio() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playBeep() {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.value = 440; // A4 note
+  oscillator.type = "sine";
+
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+function playCompletionBeep() {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.value = 880; // A5 note (higher)
+  oscillator.type = "sine";
+
+  gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.2);
+}
+
+// ============================================
+// Timer System
+// ============================================
+
+function initializeTimer() {
+  const step = getCurrentStep();
+  if (step.mode !== "timed") return;
+
+  const seconds = step.perSide ? step.secondsPerSide : step.seconds;
+  state.secondsRemaining = seconds;
+  state.timerRunning = false;
+  state.timerPaused = false;
+  updateTimerDisplay();
+}
+
+function startTimer() {
+  const step = getCurrentStep();
+  if (step.mode !== "timed") return;
+
+  // Clear any existing interval
+  if (state.timerIntervalId) {
+    clearInterval(state.timerIntervalId);
+  }
+
+  state.timerRunning = true;
+  state.timerPaused = false;
+
+  let lastTickTime = Date.now();
+  let fractionalSeconds = 0;
+
+  state.timerIntervalId = setInterval(() => {
+    const now = Date.now();
+    const elapsed = (now - lastTickTime) / 1000;
+    lastTickTime = now;
+
+    fractionalSeconds += elapsed;
+
+    if (fractionalSeconds >= 1) {
+      state.secondsRemaining -= Math.floor(fractionalSeconds);
+      fractionalSeconds = fractionalSeconds % 1;
+
+      // Play beep in last 3 seconds
+      if (state.secondsRemaining <= 3 && state.secondsRemaining > 0) {
+        playBeep();
+      }
+
+      updateTimerDisplay();
+
+      if (state.secondsRemaining <= 0) {
+        onTimerComplete();
+      }
+    }
+  }, 250);
+
+  updatePauseButtonState();
+}
+
+function pauseTimer() {
+  if (!state.timerRunning || state.timerPaused) return;
+
+  if (state.timerIntervalId) {
+    clearInterval(state.timerIntervalId);
+    state.timerIntervalId = null;
+  }
+
+  state.timerPaused = true;
+  state.timerRunning = false;
+  updatePauseButtonState();
+  render();
+}
+
+function resumeTimer() {
+  if (!state.timerPaused) return;
+
+  state.timerPaused = false;
+  startTimer();
+  render();
+}
+
+function stopTimer() {
+  if (state.timerIntervalId) {
+    clearInterval(state.timerIntervalId);
+    state.timerIntervalId = null;
+  }
+  state.timerRunning = false;
+  state.timerPaused = false;
+}
+
+function onTimerComplete() {
+  stopTimer();
+  playCompletionBeep();
+
+  const step = getCurrentStep();
+
+  // Per-leg: auto-transition Right -> Left
+  if (step.perSide && state.currentSide === "Right") {
+    state.currentSide = "Left";
+    initializeTimer();
+    render();
+
+    // Auto-start after brief visual pause
+    setTimeout(() => {
+      startTimer();
+    }, 500);
+    return;
+  }
+
+  // Left completed or non-per-side: advance to next set/step
+  advanceUnit();
+}
+
+function updateTimerDisplay() {
+  elements.timerValue.textContent = formatTime(state.secondsRemaining);
+
+  // Visual warning state for last 3 seconds
+  if (state.secondsRemaining <= 3 && state.secondsRemaining > 0) {
+    elements.timerValue.classList.add("timer-warning");
+    elements.timerValue.classList.remove("timer-running");
+  } else if (state.timerRunning) {
+    elements.timerValue.classList.add("timer-running");
+    elements.timerValue.classList.remove("timer-warning");
+  } else {
+    elements.timerValue.classList.remove("timer-running", "timer-warning");
+  }
+}
+
+// ============================================
+// Pause/Resume UI
+// ============================================
+
+function togglePause() {
+  const step = getCurrentStep();
+  if (step.mode !== "timed" || !state.started) return;
+
+  if (state.timerRunning) {
+    pauseTimer();
+  } else if (state.timerPaused) {
+    resumeTimer();
+  }
+}
+
+function updatePauseButtonState() {
+  const step = getCurrentStep();
+  const pauseSymbol = elements.pauseButton.querySelector(".rune-symbol");
+  const pauseLabel = elements.pauseButton.parentElement.querySelector(".rune-label");
+
+  if (state.timerPaused) {
+    pauseSymbol.textContent = "▶";
+    pauseLabel.textContent = "Resume";
+    elements.pauseButton.classList.remove("rune-red");
+    elements.pauseButton.classList.add("rune-green");
+  } else {
+    pauseSymbol.textContent = "⏸";
+    pauseLabel.textContent = "Pause";
+    elements.pauseButton.classList.remove("rune-green");
+    elements.pauseButton.classList.add("rune-red");
+  }
+
+  // Disable pause button when timer not applicable
+  elements.pauseButton.disabled = step.mode !== "timed" || !state.started || (!state.timerRunning && !state.timerPaused);
 }
 
 // ============================================
@@ -273,12 +493,25 @@ function render() {
   }
   elements.setBadge.textContent = setBadgeText;
 
-  // Update side indicator (hidden but kept for compatibility)
+  // Update side indicator
   if (step.perSide) {
+    elements.sideVisuals.hidden = false;
     elements.sideIndicator.hidden = false;
     elements.sideIndicator.textContent = state.currentSide || "Right";
+
+    // Update visual runes
+    if (state.currentSide === "Right") {
+      elements.runeRight.classList.add("active-side");
+      elements.runeLeft.classList.remove("active-side");
+    } else {
+      elements.runeLeft.classList.add("active-side");
+      elements.runeRight.classList.remove("active-side");
+    }
   } else {
+    elements.sideVisuals.hidden = true;
     elements.sideIndicator.hidden = true;
+    elements.runeLeft.classList.remove("active-side");
+    elements.runeRight.classList.remove("active-side");
   }
 
   // Update timer/reps display
@@ -288,6 +521,10 @@ function render() {
     // Show rep/step counter format: "0 / 15 reps"
     elements.timerValue.innerHTML = `<span class="current-rep">${state.currentRep}</span> / <span class="total-rep">${metric.value}</span>`;
     elements.timerLabel.textContent = metric.label;
+  } else if (step.mode === "timed" && state.started && state.secondsRemaining > 0) {
+    // Show live countdown for timed exercises
+    elements.timerValue.textContent = formatTime(state.secondsRemaining);
+    elements.timerLabel.textContent = metric.label;
   } else {
     elements.timerValue.textContent = metric.value;
     elements.timerLabel.textContent = metric.label;
@@ -296,12 +533,21 @@ function render() {
   // Update primary action button text based on mode and state
   if (!state.started) {
     elements.primaryAction.textContent = "Start";
+    elements.primaryAction.disabled = false;
   } else if (step.mode === "timed") {
-    elements.primaryAction.textContent = "Next";
+    if (state.timerRunning || state.timerPaused) {
+      elements.primaryAction.textContent = "Skip Timer";
+      elements.primaryAction.disabled = false;
+    } else {
+      elements.primaryAction.textContent = "Start Timer";
+      elements.primaryAction.disabled = false;
+    }
   } else if (step.perSide) {
     elements.primaryAction.textContent = `Done: ${state.currentSide}`;
+    elements.primaryAction.disabled = false;
   } else {
     elements.primaryAction.textContent = "Complete Set";
+    elements.primaryAction.disabled = false;
   }
 
   // Update navigation button states
@@ -312,6 +558,9 @@ function render() {
   elements.skipButton.disabled = atEnd;
   elements.backButtonNav.disabled = atBeginning;
   elements.skipButtonNav.disabled = atEnd;
+
+  // Update pause button state
+  updatePauseButtonState();
 
   // Render checkpoint visualizations
   renderCheckpointRow();
@@ -392,6 +641,12 @@ function advanceUnit() {
     state.currentSide = step.perSide ? "Right" : null;
     state.currentRep = 0;
     render();
+
+    // Start timer for next set (non-Strength timed exercises)
+    if (step.mode === "timed") {
+      initializeTimer();
+      startTimer();
+    }
     return;
   }
 
@@ -413,6 +668,12 @@ function advanceUnit() {
     state.currentSide = nextStep.perSide ? "Right" : null;
     state.currentRep = 0;
     render();
+
+    // Start timer for next exercise if timed
+    if (nextStep.mode === "timed") {
+      initializeTimer();
+      startTimer();
+    }
     return;
   }
 
@@ -432,6 +693,12 @@ function continueAfterRest() {
     state.currentSide = step.perSide ? "Right" : null;
     state.currentRep = 0;
     render();
+
+    // Start timer if timed exercise
+    if (step.mode === "timed") {
+      initializeTimer();
+      startTimer();
+    }
     return;
   }
 
@@ -443,6 +710,12 @@ function continueAfterRest() {
     state.currentSide = nextStep.perSide ? "Right" : null;
     state.currentRep = 0;
     render();
+
+    // Start timer if next exercise is timed
+    if (nextStep.mode === "timed") {
+      initializeTimer();
+      startTimer();
+    }
   }
 }
 
@@ -452,6 +725,7 @@ function goBack() {
     return;
   }
 
+  stopTimer();
   const step = getCurrentStep();
 
   // Per-leg: go from Left back to Right
@@ -489,6 +763,7 @@ function goBack() {
 
 // Skip to next step (marks current step complete)
 function skip() {
+  stopTimer();
   const step = getCurrentStep();
 
   // Mark current step as complete
@@ -517,6 +792,8 @@ function skip() {
 
 // Restart the entire routine
 function restart() {
+  stopTimer();
+
   if (!confirm("Restart the entire routine? All progress will be lost.")) {
     return;
   }
@@ -533,13 +810,35 @@ function restart() {
 
 // Handle primary action button click
 function handlePrimaryAction() {
+  const step = getCurrentStep();
+
   if (!state.started) {
     state.started = true;
+    initAudio(); // Initialize audio on first user interaction
+
+    if (step.mode === "timed") {
+      initializeTimer();
+      startTimer();
+    }
     render();
     return;
   }
 
-  // For timed exercises, this advances (timers will handle actual countdown later)
+  // For timed exercises
+  if (step.mode === "timed") {
+    // Timer is running or paused - skip to completion
+    if (state.timerRunning || state.timerPaused) {
+      stopTimer();
+      onTimerComplete();
+      return;
+    }
+    // Timer not started (e.g., after going back) - start it
+    initializeTimer();
+    startTimer();
+    render();
+    return;
+  }
+
   // For reps/steps, this completes the current side or set
   advanceUnit();
 }
@@ -549,6 +848,7 @@ function handlePrimaryAction() {
 // ============================================
 
 elements.primaryAction.addEventListener("click", handlePrimaryAction);
+elements.pauseButton.addEventListener("click", togglePause);
 elements.backButton.addEventListener("click", goBack);
 elements.skipButton.addEventListener("click", skip);
 elements.backButtonNav.addEventListener("click", goBack);
