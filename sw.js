@@ -12,6 +12,8 @@ const PRECACHE_ASSETS = [
     './style.css',
     './app.js',
     './manifest.json',
+    './progress.html',
+    './progress.js',
     // Icons
     './icons/icon-192.svg',
     './icons/icon-512.svg',
@@ -31,6 +33,24 @@ const PRECACHE_ASSETS = [
     './assets/ex_walk_uphill.png',
     './assets/ex_one_leg_stand.png',
     './assets/ex_penguin_walk.png',
+    // Stickers
+    './assets/stickers/sticker_star.svg',
+    './assets/stickers/sticker_paw.svg',
+    './assets/stickers/sticker_wolf.svg',
+    './assets/stickers/sticker_moon.svg',
+    './assets/stickers/sticker_tree.svg',
+    './assets/stickers/sticker_heart.svg',
+    // Badges
+    './assets/badges/badge_first_steps.svg',
+    './assets/badges/badge_hat_trick.svg',
+    './assets/badges/badge_ten_strong.svg',
+    './assets/badges/badge_quarter_century.svg',
+    './assets/badges/badge_fifty_fine.svg',
+    './assets/badges/badge_century_wolf.svg',
+    './assets/badges/badge_stretch_star.svg',
+    './assets/badges/badge_strong_steps.svg',
+    './assets/badges/badge_explorer.svg',
+    './assets/badges/badge_locked.svg',
 ];
 
 // Install event - precache all assets

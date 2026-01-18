@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Progress - Wolfwalkers' Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <!-- Additional styles for progress page specific layouts -->
+    <style>
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 20px;
+        position: relative;
+      }
+      .nav-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #ffecd2;
+        font-family: var(--font-main);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .nav-btn:hover {
+        color: #fff;
+        text-shadow: 0 0 5px #fff;
+      }
+      .tab-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: -2px; /* overlap with content */
+        z-index: 10;
+        flex-wrap: wrap;
+      }
+      .tab {
+        background: #5d4037;
+        color: #aa8e82;
+        border: 2px solid #3e2723;
+        border-bottom: none;
+        padding: 10px 20px;
+        border-radius: 10px 10px 0 0;
+        font-family: var(--font-main);
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+      }
+      .tab.active {
+        background: #f5f5dc; /* Match parchment */
+        color: #3e2723;
+        padding-top: 15px; /* pop up */
+        margin-top: -5px;
+        font-weight: bold;
+        box-shadow: 0 -5px 10px rgba(0,0,0,0.2);
+      }
+      .tab-content {
+        background: #f5f5dc url('assets/parchment_texture.png') center;
+        background-size: cover;
+        border: 3px solid #3e2723;
+        border-radius: 8px;
+        padding: 30px;
+        min-height: 400px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        position: relative;
+        z-index: 5;
+      }
+      .tab-pane {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .tab-pane.active {
+        display: flex;
+      }
+      
+      /* Badges Grid */
+      .badge-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 20px;
+        width: 100%;
+        padding: 10px;
+      }
+      .badge-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 10px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 8px;
+        transition: transform 0.2s;
+        cursor: help; /* tooltip hint */
+        position: relative;
+      }
+      .badge-item:hover {
+        transform: scale(1.05);
+        background: rgba(0,0,0,0.1);
+      }
+      .badge-item img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 5px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      }
+      .badge-item.locked img {
+        filter: grayscale(100%) opacity(0.5) contrast(0.8);
+      }
+      .badge-name {
+        font-weight: bold;
+        color: #3e2723;
+        font-size: 0.9rem;
+      }
+      .badge-desc {
+        display: none;
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #3e2723;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        width: 150px;
+        z-index: 100;
+        pointer-events: none;
+      }
+      .badge-item:hover .badge-desc {
+        display: block;
+      }
+
+      /* Streak Calendar */
+      .streak-calendar {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .day-card {
+        width: 50px;
+        height: 70px;
+        background: #eefeef;
+        border: 2px solid #8d6e63;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 5px;
+      }
+      .day-name {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #5d4037;
+        margin-bottom: 5px;
+      }
+      .day-status {
+        font-size: 1.5rem;
+      }
+      .day-card.completed {
+        background: #c8e6c9;
+        border-color: #2e7d32;
+      }
+      .day-card.current {
+        border-color: #ffd700;
+        box-shadow: 0 0 5px #ffd700;
+      }
+      .streak-stats-row {
+        display: flex;
+        gap: 30px;
+        margin-top: 20px;
+      }
+      
+      /* Journey */
+      .journey-map {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .chapter-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: rgba(255,255,255,0.4);
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px dashed #8d6e63;
+      }
+      .chapter-row.active {
+        background: rgba(255, 215, 0, 0.1);
+        border: 2px solid #cba135;
+      }
+      .chapter-icon {
+        font-size: 2rem;
+      }
+      .chapter-info {
+        flex: 1;
+      }
+      .chapter-title {
+        font-weight: bold;
+        color: #3e2723;
+      }
+      .chapter-progress-bar {
+        height: 10px;
+        background: #d7ccc8;
+        border-radius: 5px;
+        margin-top: 5px;
+        overflow: hidden;
+      }
+      .chapter-fill {
+        height: 100%;
+        background: #66bb6a;
+        width: 0%;
+        transition: width 0.5s ease;
+      }
+
+      /* Stickers grid */
+      .stickers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 15px;
+        width: 100%;
+      }
+      .sticker-item {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border: 1px dotted #8d6e63;
+      }
+      .sticker-item img {
+        width: 60px;
+        height: 60px;
+        transition: transform 0.2s;
+      }
+      .sticker-item:hover img {
+        transform: scale(1.2) rotate(10deg);
+      }
+      
+      .reset-btn-container {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+      .settings-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+      .settings-btn:hover {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background Spirits -->
+    <div class="spirit wolf-spirit spirit-1"></div>
+    <div class="spirit wolf-spirit spirit-2"></div>
+
+    <div class="page-container">
+      <header class="wood-header">
+        <div class="progress-header">
+           <button class="nav-btn" id="backToApp">
+             <div class="rune-symbol">‹</div> Back
+           </button>
+           <h1 class="game-title">Achievements</h1>
+           <button class="settings-btn" id="parentSettings" title="Parent Settings">⚙️</button>
+        </div>
+      </header>
+
+      <div class="tab-container">
+        <div class="tabs">
+          <div class="tab active" data-tab="badges">Badges</div>
+          <div class="tab" data-tab="streak">Streak</div>
+          <div class="tab" data-tab="journey">Journey</div>
+          <div class="tab" data-tab="stickers">Stickers</div>
+        </div>
+        
+        <div class="tab-content">
+          
+          <!-- Badges View -->
+          <div id="badges" class="tab-pane active">
+            <h2>Your Trophy Case</h2>
+            <div class="badge-grid" id="badgeGrid">
+              <!-- Populated by JS -->
+            </div>
+            <p id="totalSessionsBadgeLabel" style="margin-top: 20px; font-weight: bold;">Total Sessions: 0</p>
+          </div>
+
+          <!-- Streak View -->
+          <div id="streak" class="tab-pane">
+            <h2>Weekly Streak</h2>
+            <div class="streak-calendar" id="streakCalendar">
+              <!-- Populated by JS -->
+            </div>
+            <div class="streak-stats-row">
+              <div class="stat-item">
+                 <div class="stat-value" id="currentStreakValue">0</div>
+                 <div class="stat-label">Current Streak</div>
+              </div>
+              <div class="stat-item">
+                 <div class="stat-value" id="graceDaysValue">2</div>
+                 <div class="stat-label">Grace Days Left</div>
+              </div>
+            </div>
+            <p style="font-style: italic; margin-top: 20px; color: #5d4037;">Keep the flame alive!</p>
+          </div>
+
+          <!-- Journey View -->
+          <div id="journey" class="tab-pane">
+            <h2>The Wolfwalker's Path</h2>
+            <div class="journey-map" id="journeyMap">
+              <!-- Populated by JS -->
+            </div>
+            <p style="margin-top:10px;">XP: <span id="xpDisplay">0</span></p>
+          </div>
+
+          <!-- Stickers View -->
+          <div id="stickers" class="tab-pane">
+            <h2>Sticker Collection</h2>
+            <div class="stickers-grid" id="stickersGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <script src="progress.js"></script>
+  </body>
+</html>

@@ -995,3 +995,125 @@ body {
     font-size: 0.8rem;
   }
 }
+
+/* ============================================
+   Motivation Rewards Styles
+   ============================================ */
+
+.reward-sticker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0;
+  animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.reward-sticker img {
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.new-badges-msg {
+  font-size: 1.5rem;
+  color: var(--rune-blue);
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.new-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.new-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+  animation: slide-up-fade 0.5s ease-out backwards;
+}
+
+/* Stagger animation for multiple badges */
+.new-badge:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.new-badge:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.new-badge:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.new-badge img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 5px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.new-badge p {
+  font-size: 0.8rem;
+  color: #5d4037;
+  margin: 0;
+  line-height: 1.2;
+  font-weight: bold;
+}
+
+.stats-summary {
+  font-size: 1.2rem;
+  color: #3e2723;
+  margin-top: 20px;
+  padding: 10px;
+  background: rgba(255, 236, 210, 0.4);
+  border-radius: 8px;
+  border: 1px solid rgba(62, 39, 35, 0.2);
+}
+
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .reward-sticker img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .new-badge {
+    width: 70px;
+  }
+
+  .new-badge img {
+    width: 50px;
+    height: 50px;
+  }
+}

@@ -215,6 +215,222 @@ function restoreSession(savedData) {
 }
 
 // ============================================
+// Motivation System Persistence
+// ============================================
+
+const MOTIVATION_KEY = 'wolfwalkers_motivation_v1';
+
+// Badge Definitions
+const BADGES = [
+  { id: 'first_session', name: 'First Steps', description: 'Complete your first session', icon: 'assets/badges/badge_first_steps.svg' },
+  { id: 'hat_trick', name: 'Hat Trick', description: 'Complete 3 sessions in a week', icon: 'assets/badges/badge_hat_trick.svg' },
+  { id: 'ten_strong', name: 'Ten Strong', description: 'Complete 10 total sessions', icon: 'assets/badges/badge_ten_strong.svg' },
+  { id: 'quarter_century', name: 'Quarter Century', description: 'Complete 25 total sessions', icon: 'assets/badges/badge_quarter_century.svg' },
+  { id: 'fifty_fine', name: 'Fifty Fine', description: 'Complete 50 total sessions', icon: 'assets/badges/badge_fifty_fine.svg' },
+  { id: 'century_wolf', name: 'Century Wolf', description: 'Complete 100 total sessions', icon: 'assets/badges/badge_century_wolf.svg' },
+  { id: 'stretch_star', name: 'Stretch Star', description: 'Complete all stretches in a session', icon: 'assets/badges/badge_stretch_star.svg' },
+  { id: 'strong_steps', name: 'Strong Steps', description: 'Complete all strength sets in a session', icon: 'assets/badges/badge_strong_steps.svg' },
+  { id: 'explorer', name: 'Explorer', description: 'Complete a session while offline', icon: 'assets/badges/badge_explorer.svg' }
+];
+
+const defaultMotivationState = {
+  totalSessionsCompleted: 0,
+  sessionsByDate: {}, // "YYYY-MM-DD": true
+  currentStreak: 0,
+  lastSessionDate: null,
+  graceDaysUsedThisMonth: 0,
+  lastGraceMonth: null, // "YYYY-MM"
+  badgesUnlocked: [], // { id, timestamp }
+  xpTotal: 0,
+  collectedStickers: [] // IDs
+};
+
+let motivationState = { ...defaultMotivationState };
+
+function loadMotivationData() {
+  try {
+    const saved = localStorage.getItem(MOTIVATION_KEY);
+    if (saved) {
+      motivationState = { ...defaultMotivationState, ...JSON.parse(saved) };
+    }
+  } catch (e) {
+    console.warn('Failed to load motivation data', e);
+  }
+}
+
+function saveMotivationData() {
+  try {
+    localStorage.setItem(MOTIVATION_KEY, JSON.stringify(motivationState));
+  } catch (e) {
+    console.warn('Failed to save motivation data', e);
+  }
+}
+
+function resetMotivationData() {
+  if (confirm("Are you sure you want to reset all progress, badges, and streaks? This cannot be undone.")) {
+    motivationState = { ...defaultMotivationState };
+    saveMotivationData();
+    alert("Motivation data has been reset.");
+    window.location.reload();
+  }
+}
+
+// Helper: Get date strings
+function getTodayString() {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+}
+
+function getMonthString() {
+  const now = new Date();
+  return now.toISOString().split('T')[0].substring(0, 7); // "YYYY-MM"
+}
+
+// Logic: Check and unlock badges
+function checkBadges() {
+  const newBadges = [];
+  const state = motivationState;
+
+  BADGES.forEach(badge => {
+    // Skip if already unlocked
+    if (state.badgesUnlocked.some(b => b.id === badge.id)) return;
+
+    let unlocked = false;
+
+    // Check conditions
+    if (badge.id === 'first_session' && state.totalSessionsCompleted >= 1) unlocked = true;
+    if (badge.id === 'ten_strong' && state.totalSessionsCompleted >= 10) unlocked = true;
+    if (badge.id === 'quarter_century' && state.totalSessionsCompleted >= 25) unlocked = true;
+    if (badge.id === 'fifty_fine' && state.totalSessionsCompleted >= 50) unlocked = true;
+    if (badge.id === 'century_wolf' && state.totalSessionsCompleted >= 100) unlocked = true;
+
+    // "Hat Trick": 3 sessions in a week (simple check: last 3 sessions within 7 days)
+    if (badge.id === 'hat_trick' && state.totalSessionsCompleted >= 3) {
+      // Logic depends on history sessionByDate keys... simplistic approach for now
+      // or checking consecutive days. Let's rely on "sessionsByDate" if we populate it
+    }
+
+    // "Explorer": Offline mode
+    if (badge.id === 'explorer' && !navigator.onLine) unlocked = true;
+
+    // "Stretch Star" & "Strong Steps" are passed from workout logic, handled separately/manually 
+    // or by checking flags if we track them. For now, we'll manually trigger them in `onSessionComplete` if eligible.
+
+    if (unlocked) {
+      const badgeEntry = { id: badge.id, timestamp: Date.now() };
+      state.badgesUnlocked.push(badgeEntry);
+      newBadges.push(badge);
+    }
+  });
+
+  return newBadges;
+}
+
+// Logic: Update Streak
+function updateStreak() {
+  const today = getTodayString();
+  const currentMonth = getMonthString();
+  const state = motivationState;
+
+  // Reset grace days if new month
+  if (state.lastGraceMonth !== currentMonth) {
+    state.graceDaysUsedThisMonth = 0;
+    state.lastGraceMonth = currentMonth;
+  }
+
+  // If already done today, no streak change
+  if (state.lastSessionDate === today) return;
+
+  if (!state.lastSessionDate) {
+    // First ever session
+    state.currentStreak = 1;
+  } else {
+    const last = new Date(state.lastSessionDate);
+    const now = new Date(today);
+    const diffTime = Math.abs(now - last);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      // Consecutive day
+      state.currentStreak++;
+    } else if (diffDays > 1) {
+      // Missed days
+      const daysMissed = diffDays - 1;
+
+      // Check grace
+      if (state.graceDaysUsedThisMonth + daysMissed <= 2) {
+        // Grace saves the streak!
+        state.graceDaysUsedThisMonth += daysMissed;
+        state.currentStreak++; // Continue streak effectively
+      } else {
+        // Streak broken
+        state.currentStreak = 1;
+      }
+    }
+  }
+
+  state.lastSessionDate = today;
+  state.sessionsByDate[today] = true;
+}
+
+// Logic: Update XP and Chapter
+function updateExperience(exercisesCount) {
+  // +1 per exercise, +3 bonus for session
+  const xpGained = exercisesCount + 3;
+  motivationState.xpTotal += xpGained;
+
+  // Simple chapter progression: 1 chapter per month approx, or based on session count
+  // PRD says: "Progress within a month is based on sessions completed that month"
+  // We'll increment chapter progress. 
+  // Let's say 20 sessions to complete a chapter?
+  const SESSIONS_PER_CHAPTER = 20;
+
+  // Calculate chapter based on total sessions roughly, or explicit tracking
+  // Let's track chapter progress 0-100%
+  // We need to persist currentChapter and chapterProgress (sessions in this chapter)
+
+  if (typeof motivationState.chapterProgress === 'undefined') motivationState.chapterProgress = 0;
+
+  motivationState.chapterProgress++; // Increment sessions in this chapter
+
+  if (motivationState.chapterProgress >= SESSIONS_PER_CHAPTER && motivationState.currentChapter < 6) {
+    motivationState.currentChapter++;
+    motivationState.chapterProgress = 0;
+    // Celebration for new chapter?
+  }
+}
+
+// Logic: Award Random Sticker
+function awardSticker() {
+  const STICKERS = ['sticker_star', 'sticker_paw', 'sticker_wolf', 'sticker_moon', 'sticker_tree', 'sticker_heart'];
+  const randomSticker = STICKERS[Math.floor(Math.random() * STICKERS.length)];
+  motivationState.collectedStickers.push(randomSticker);
+  return randomSticker;
+}
+
+// Master Function: Complete Session
+function completeSessionMotivation(exercisesCount) {
+  const state = motivationState;
+
+  state.totalSessionsCompleted++;
+  updateStreak();
+  updateExperience(exercisesCount);
+
+  const newSticker = awardSticker();
+  const newBadges = checkBadges(); // Returns array of badge objects
+
+  saveMotivationData();
+
+  return {
+    newSticker,
+    newBadges,
+    totalSessions: state.totalSessionsCompleted,
+    streak: state.currentStreak,
+    xpTotal: state.xpTotal
+  };
+}
+
+// ============================================
 // DOM Elements
 // ============================================
 
@@ -755,6 +971,45 @@ function showEndScreen() {
   const totalSeconds = Math.floor((state.routineEndTime - state.routineStartTime) / 1000);
   elements.totalTimeValue.textContent = formatTime(totalSeconds);
   elements.exercisesCompleted.textContent = routine.length;
+
+  // Motivation Update
+  const result = completeSessionMotivation(routine.length);
+
+  // Render Rewards
+  elements.rewardContainer.innerHTML = '';
+
+  // 1. Sticker
+  if (result.newSticker) {
+    const stickerDiv = document.createElement('div');
+    stickerDiv.className = 'reward-sticker';
+    // Using placekitten or placeholder until SVGs are created, or just the path assuming I create them next
+    stickerDiv.innerHTML = `<img src="assets/stickers/${result.newSticker}.svg" alt="New Sticker" onerror="this.style.display='none'">`;
+    elements.rewardContainer.appendChild(stickerDiv);
+  }
+
+  // 2. Badges
+  if (result.newBadges.length > 0) {
+    const badgeMsg = document.createElement('div');
+    badgeMsg.className = 'new-badges-msg';
+    badgeMsg.textContent = 'New Badges Unlocked!';
+    elements.rewardContainer.appendChild(badgeMsg);
+
+    const badgesRow = document.createElement('div');
+    badgesRow.className = 'new-badges-row';
+    result.newBadges.forEach(badge => {
+      const b = document.createElement('div');
+      b.className = 'new-badge';
+      b.innerHTML = `<img src="${badge.icon}" alt="${badge.name}" onerror="this.src='assets/rune_stone.png'"><p>${badge.name}</p>`;
+      badgesRow.appendChild(b);
+    });
+    elements.rewardContainer.appendChild(badgesRow);
+  }
+
+  // 3. Stats update line
+  const statsLine = document.createElement('p');
+  statsLine.className = 'stats-summary';
+  statsLine.innerHTML = `Total Sessions: <strong>${result.totalSessions}</strong> • Streak: <strong>${result.streak} 🔥</strong>`;
+  elements.rewardContainer.appendChild(statsLine);
 
   // Show the overlay
   elements.endOverlay.classList.remove("hidden");
