@@ -195,12 +195,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5dc url('assets/parchment_texture.png') no-repeat center;
-  background-size: 100% 100%;
-  /* Stretch to fit */
-  padding: 60px 80px;
-  /* inner padding to avoid rough edges */
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+  background: rgba(245, 245, 220, 0.95);
+  padding: 40px 50px;
+  border-radius: 12px;
+  border: 3px solid #8d6e63;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
 }
 
 .parchment-content {
@@ -589,10 +588,10 @@ body {
 }
 
 .parchment-modal {
-  background: #f5f5dc url('assets/parchment_texture.png') center;
-  background-size: cover;
+  background: rgba(245, 245, 220, 0.98);
   padding: 40px;
-  border-radius: 10px;
+  border-radius: 12px;
+  border: 3px solid #8d6e63;
   text-align: center;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
   max-width: 400px;
@@ -768,7 +767,7 @@ body {
     order: 1;
     width: 100%;
     min-height: auto;
-    padding: 30px 15px;
+    padding: 20px 12px;
   }
 
   .exercise-title {
@@ -1392,7 +1391,7 @@ body {
   }
 
   .parchment-card {
-    padding: 20px 10px;
+    padding: 15px 8px;
   }
 
   .exercise-title {
