@@ -404,6 +404,58 @@ body {
   margin-top: 20px;
 }
 
+/* Workout length selection buttons */
+.workout-length-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.workout-length-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 20px 30px;
+  min-width: 200px;
+}
+
+.workout-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.workout-label {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.workout-desc {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Mobile adjustments for workout length buttons */
+@media (max-width: 768px) {
+  .workout-length-btn {
+    padding: 15px 20px;
+    min-width: 160px;
+  }
+
+  .workout-icon {
+    font-size: 1.5rem;
+  }
+
+  .workout-label {
+    font-size: 1.2rem;
+  }
+
+  .workout-desc {
+    font-size: 0.8rem;
+  }
+}
+
 .set-info {
   margin-top: 10px;
   font-size: 1.2rem;
@@ -695,10 +747,256 @@ body {
   display: none;
 }
 
-/* Responsive */
-/* Responsive */
+/* ============================================
+   New Parchment UI Styles
+   ============================================ */
 
-/* Tablet Portrait & Mobile (max-width: 768px) */
+.parchment-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 850px;
+  background: url('assets/parchment_full_bg.png') no-repeat center top;
+  background-size: 100% 100%;
+  padding: 80px 50px 70px 50px; /* Space for scroll header/footer */
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
+  z-index: 5;
+}
+
+.parchment-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  font-family: var(--font-main);
+  color: #3e2723;
+}
+
+.session-stat {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.chapter-progress-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mini-progress-track {
+  width: 150px;
+  height: 18px;
+  background: url('assets/progress_bar_frame.png') no-repeat center;
+  background-size: 100% 100%;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  /* Adjust padding inside frame if needed */
+  padding: 3px; 
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background: url('assets/progress_bar_fill.png') repeat-x center;
+  background-size: auto 100%;
+  width: 50%;
+  border-radius: 8px;
+  box-shadow: 0 0 5px #ffd700;
+}
+
+/* Tabs Redesign */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0; /* Overlap slightly? */
+  margin-bottom: -15px; /* Pull down into parchment */
+  z-index: 4; /* Behind parchment wrapper top edge if needed, but usually tabs are on top */
+  position: relative;
+  z-index: 6; /* Above parchment */
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tab {
+  width: 140px;
+  height: 50px;
+  background: url('assets/tab_inactive_bg.png') no-repeat center bottom;
+  background-size: 100% 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  color: #5d4037;
+  cursor: pointer;
+  padding-top: 5px;
+  transition: transform 0.2s;
+  box-shadow: none; /* remove old box shadow */
+  border-radius: 0; /* remove old border radius */
+}
+
+.tab:hover {
+  transform: translateY(-2px);
+  color: #3e2723;
+}
+
+.tab.active {
+  background: url('assets/tab_active_bg.png') no-repeat center bottom;
+  background-size: 100% 100%;
+  height: 60px; /* Taller */
+  margin-top: -10px;
+  z-index: 7;
+  color: #3e2723;
+  font-weight: bold;
+  padding-top: 10px;
+}
+
+.tab-content {
+  flex: 1;
+  background: none; /* Remove old bg */
+  border: none;     /* Remove old border */
+  box-shadow: none;
+  padding: 0;
+  min-height: auto;
+}
+
+/* Badges Grid Update */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 15px;
+  padding: 10px;
+}
+
+.badge-item {
+  background: none !important; /* Remove old bg */
+  transition: transform 0.2s;
+}
+
+.badge-item:hover {
+  transform: scale(1.1);
+  background: none !important;
+}
+
+.badge-item img {
+  width: 90px;
+  height: 90px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.badge-item.locked img {
+  /* We will use a dedicated locked image, so remove grayscale filter or adjust */
+  filter: none; 
+  opacity: 1;
+}
+
+/* Bottom Level Path */
+.parchment-bottom-bar {
+  margin-top: 20px;
+  border-top: 2px solid rgba(139, 69, 19, 0.2);
+  padding-top: 10px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.level-path-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  padding: 10px;
+}
+
+/* Connecting line behind circles */
+.level-path-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 4px;
+  background: rgba(0,0,0,0.2);
+  z-index: 0;
+  border-radius: 2px;
+}
+
+.level-circle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+  z-index: 1;
+  cursor: pointer;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  text-shadow: 1px 1px 0 #000;
+  transition: transform 0.2s;
+}
+
+.level-circle:hover {
+  transform: scale(1.2);
+}
+
+/* Level States */
+.level-circle.locked {
+  background-image: url('assets/level_circle_locked.png'); /* Will generate */
+  color: #aaa;
+}
+/* Fallback if image missing */
+.level-circle.locked {
+   background-color: #5d4037; 
+   border-radius: 50%;
+}
+
+.level-circle.active {
+  background-image: url('assets/level_circle_active.png');
+  width: 48px;
+  height: 48px;
+  font-size: 1.2rem;
+  margin: 0 5px;
+  background-color: transparent; /* Reset fallback */
+}
+
+.level-circle.completed {
+  background-image: url('assets/level_circle_completed.png'); /* Will generate */
+  background-color: #cba135; /* Fallback */
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .parchment-wrapper {
+    padding: 60px 20px 50px 20px;
+    background-size: 100% 100%;
+  }
+  
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 5px;
+  }
+  
+  .tab {
+    min-width: 100px;
+    font-size: 0.9rem;
+  }
+  
+  .mini-progress-track {
+    width: 100px;
+  }
+}
+
 @media (max-width: 768px) {
   .page-container {
     padding: 5px;

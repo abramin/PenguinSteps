@@ -94,6 +94,47 @@ const routine = [
   },
 ];
 
+// ============================================
+// Workout Length Configuration
+// ============================================
+
+// Short workout overrides (by exercise name)
+const SHORT_WORKOUT_OVERRIDES = {
+  "Wall Calf Stretch": { sets: 2 },
+  "Seated Towel Stretch": { sets: 2 },
+  "Heel Walking (forwards & backwards)": { sets: 2, steps: 5 },
+  "Resistance Band Dorsiflexion": { sets: 2, repsPerSide: 8 },
+  "Mini Squats (heels flat)": { sets: 2, reps: 5 },
+  "Heel-Toe Walk on Tape Line": { sets: 2, steps: 5 },
+  "One-Leg Stand (eyes open, heels down)": { sets: 2 },
+  "Penguin Walk Game": { seconds: 90 },
+};
+
+// Current workout length ('long' or 'short')
+let workoutLength = 'long';
+
+// Generate active routine based on workout length
+function getActiveRoutine() {
+  if (workoutLength === 'long') {
+    return routine;
+  }
+
+  // Apply short workout overrides
+  return routine.map(exercise => {
+    const overrides = SHORT_WORKOUT_OVERRIDES[exercise.name];
+    if (overrides) {
+      return { ...exercise, ...overrides };
+    }
+    return exercise;
+  });
+}
+
+// Get the current active routine (cached for performance during a session)
+let activeRoutine = null;
+
+function initActiveRoutine() {
+  activeRoutine = getActiveRoutine();
+}
 
 // ============================================
 // Audio Configuration & Logic
@@ -237,7 +278,7 @@ const audioManager = new AudioManager();
 const state = {
   currentStepIndex: 0,
   currentSetIndex: 0,
-  currentSide: routine[0].perSide ? "Right" : null,
+  currentSide: null, // Set when workout length is chosen
   started: false,
   currentRep: 0, // For rep counting display
   // Timer state
@@ -261,6 +302,7 @@ const STORAGE_NAMESPACE = 'wolfwalkers_';
 const STORAGE_KEYS = {
   state: STORAGE_NAMESPACE + 'state',
   completedSteps: STORAGE_NAMESPACE + 'completedSteps',
+  workoutLength: STORAGE_NAMESPACE + 'workoutLength',
 };
 
 function saveSession() {
@@ -278,6 +320,7 @@ function saveSession() {
     };
     localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(persistableState));
     localStorage.setItem(STORAGE_KEYS.completedSteps, JSON.stringify([...completedSteps]));
+    localStorage.setItem(STORAGE_KEYS.workoutLength, workoutLength);
   } catch (e) {
     console.warn('Failed to save session:', e);
   }
@@ -287,13 +330,14 @@ function loadSession() {
   try {
     const savedState = localStorage.getItem(STORAGE_KEYS.state);
     const savedSteps = localStorage.getItem(STORAGE_KEYS.completedSteps);
+    const savedWorkoutLength = localStorage.getItem(STORAGE_KEYS.workoutLength);
 
     if (!savedState) return null;
 
     const parsed = JSON.parse(savedState);
     const steps = savedSteps ? JSON.parse(savedSteps) : [];
 
-    return { state: parsed, completedSteps: steps };
+    return { state: parsed, completedSteps: steps, workoutLength: savedWorkoutLength || 'long' };
   } catch (e) {
     console.warn('Failed to load session:', e);
     return null;
@@ -304,6 +348,7 @@ function clearSession() {
   try {
     localStorage.removeItem(STORAGE_KEYS.state);
     localStorage.removeItem(STORAGE_KEYS.completedSteps);
+    localStorage.removeItem(STORAGE_KEYS.workoutLength);
   } catch (e) {
     console.warn('Failed to clear session:', e);
   }
@@ -323,6 +368,10 @@ function hasSavedSession() {
 
 function restoreSession(savedData) {
   if (!savedData) return;
+
+  // Restore workout length and initialize active routine
+  workoutLength = savedData.workoutLength || 'long';
+  initActiveRoutine();
 
   // Restore state
   state.currentStepIndex = savedData.state.currentStepIndex;
@@ -599,6 +648,10 @@ const elements = {
   resumeOverlay: document.getElementById("resumeOverlay"),
   resumeSessionBtn: document.getElementById("resumeSessionBtn"),
   startFreshBtn: document.getElementById("startFreshBtn"),
+  // Workout length selection elements
+  workoutLengthOverlay: document.getElementById("workoutLengthOverlay"),
+  shortWorkoutBtn: document.getElementById("shortWorkoutBtn"),
+  longWorkoutBtn: document.getElementById("longWorkoutBtn"),
   // Audio
   musicToggleBtn: document.getElementById("musicToggleBtn"),
   skipTrackBtn: document.getElementById("skipTrackBtn"),
@@ -845,7 +898,7 @@ function updatePauseButtonState() {
 function renderCheckpointRow() {
   elements.checkpointRow.innerHTML = "";
 
-  routine.forEach((_, index) => {
+  activeRoutine.forEach((_, index) => {
     // Add connector before each checkpoint (except first)
     if (index > 0) {
       const connector = document.createElement("div");
@@ -878,7 +931,7 @@ function renderCheckpointRow() {
 function renderPath() {
   elements.checkpointPath.innerHTML = "";
 
-  routine.forEach((_, index) => {
+  activeRoutine.forEach((_, index) => {
     const checkpoint = document.createElement("li");
     checkpoint.className = "checkpoint";
     checkpoint.textContent = String(index + 1);
@@ -896,11 +949,11 @@ function renderPath() {
 }
 
 function render() {
-  const step = routine[state.currentStepIndex];
+  const step = activeRoutine[state.currentStepIndex];
 
   // Update progress label
-  elements.progressLabel.textContent = `Checkpoint ${state.currentStepIndex + 1} of ${routine.length}`;
-  const percent = Math.round((completedSteps.size / routine.length) * 100);
+  elements.progressLabel.textContent = `Checkpoint ${state.currentStepIndex + 1} of ${activeRoutine.length}`;
+  const percent = Math.round((completedSteps.size / activeRoutine.length) * 100);
   elements.progressLabel.textContent += ` (${percent}%)`;
   elements.progressFill.style.width = `${percent}%`;
 
@@ -990,7 +1043,7 @@ function render() {
 
   // Update navigation button states
   const atBeginning = isAtBeginning();
-  const atEnd = state.currentStepIndex === routine.length - 1;
+  const atEnd = state.currentStepIndex === activeRoutine.length - 1;
 
   elements.backButton.disabled = atBeginning;
   elements.skipButton.disabled = atEnd;
@@ -1016,21 +1069,21 @@ function isAtBeginning() {
   return (
     state.currentStepIndex === 0 &&
     state.currentSetIndex === 0 &&
-    (!routine[0].perSide || state.currentSide === "Right")
+    (!activeRoutine[0].perSide || state.currentSide === "Right")
   );
 }
 
 function isAtEnd() {
-  const lastStep = routine[routine.length - 1];
+  const lastStep = activeRoutine[activeRoutine.length - 1];
   return (
-    state.currentStepIndex === routine.length - 1 &&
+    state.currentStepIndex === activeRoutine.length - 1 &&
     state.currentSetIndex === lastStep.sets - 1 &&
     (!lastStep.perSide || state.currentSide === "Left")
   );
 }
 
 function getCurrentStep() {
-  return routine[state.currentStepIndex];
+  return activeRoutine[state.currentStepIndex];
 }
 
 // Check if rest overlay should show (Strength exercises only)
@@ -1088,10 +1141,10 @@ function showEndScreen() {
   // Calculate total time
   const totalSeconds = Math.floor((state.routineEndTime - state.routineStartTime) / 1000);
   elements.totalTimeValue.textContent = formatTime(totalSeconds);
-  elements.exercisesCompleted.textContent = routine.length;
+  elements.exercisesCompleted.textContent = activeRoutine.length;
 
   // Motivation Update
-  const result = completeSessionMotivation(routine.length);
+  const result = completeSessionMotivation(activeRoutine.length);
 
   // Render Rewards
   elements.rewardContainer.innerHTML = '';
@@ -1184,10 +1237,10 @@ function advanceUnit() {
   completedSteps.add(state.currentStepIndex);
 
   // Move to next step if available
-  if (state.currentStepIndex < routine.length - 1) {
+  if (state.currentStepIndex < activeRoutine.length - 1) {
     // Check for rest overlay before moving to next exercise (Strength only)
     if (shouldShowRestOverlay(step, false, true)) {
-      const nextStep = routine[state.currentStepIndex + 1];
+      const nextStep = activeRoutine[state.currentStepIndex + 1];
       showRestOverlay(`Up next: ${nextStep.name}`);
       return;
     }
@@ -1233,7 +1286,7 @@ function continueAfterRest() {
   }
 
   // Otherwise, move to next step
-  if (state.currentStepIndex < routine.length - 1) {
+  if (state.currentStepIndex < activeRoutine.length - 1) {
     state.currentStepIndex++;
     state.currentSetIndex = 0;
     const nextStep = getCurrentStep();
@@ -1300,8 +1353,8 @@ function skip() {
   completedSteps.add(state.currentStepIndex);
 
   // Check for rest overlay (Strength exercises only)
-  if (step.type === "Strength" && state.currentStepIndex < routine.length - 1) {
-    const nextStep = routine[state.currentStepIndex + 1];
+  if (step.type === "Strength" && state.currentStepIndex < activeRoutine.length - 1) {
+    const nextStep = activeRoutine[state.currentStepIndex + 1];
     showRestOverlay(`Up next: ${nextStep.name}`);
     // State will be updated when ready button is clicked
     state.currentSetIndex = step.sets - 1; // Mark as if at end of exercise
@@ -1309,7 +1362,7 @@ function skip() {
   }
 
   // Move to next step if available
-  if (state.currentStepIndex < routine.length - 1) {
+  if (state.currentStepIndex < activeRoutine.length - 1) {
     state.currentStepIndex++;
     state.currentSetIndex = 0;
     const nextStep = getCurrentStep();
@@ -1341,7 +1394,7 @@ function restart() {
 function resetRoutine() {
   state.currentStepIndex = 0;
   state.currentSetIndex = 0;
-  state.currentSide = routine[0].perSide ? "Right" : null;
+  state.currentSide = activeRoutine[0].perSide ? "Right" : null;
   state.started = false;
   state.currentRep = 0;
   state.routineStartTime = null;
@@ -1441,7 +1494,42 @@ elements.resumeSessionBtn.addEventListener("click", () => {
 elements.startFreshBtn.addEventListener("click", () => {
   clearSession();
   hideResumeOverlay();
+  showWorkoutLengthOverlay();
+});
+
+// ============================================
+// Workout Length Selection
+// ============================================
+
+function showWorkoutLengthOverlay() {
+  elements.workoutLengthOverlay.classList.remove("hidden");
+  elements.workoutLengthOverlay.setAttribute("aria-hidden", "false");
+}
+
+function hideWorkoutLengthOverlay() {
+  elements.workoutLengthOverlay.classList.add("hidden");
+  elements.workoutLengthOverlay.setAttribute("aria-hidden", "true");
+}
+
+function selectWorkoutLength(length) {
+  workoutLength = length;
+  initActiveRoutine();
+
+  // Reset state for new workout
+  state.currentStepIndex = 0;
+  state.currentSetIndex = 0;
+  state.currentSide = activeRoutine[0].perSide ? "Right" : null;
+
+  hideWorkoutLengthOverlay();
   render();
+}
+
+elements.shortWorkoutBtn.addEventListener("click", () => {
+  selectWorkoutLength('short');
+});
+
+elements.longWorkoutBtn.addEventListener("click", () => {
+  selectWorkoutLength('long');
 });
 
 // ============================================
@@ -1452,7 +1540,8 @@ elements.startFreshBtn.addEventListener("click", () => {
 if (hasSavedSession()) {
   showResumeOverlay();
 } else {
-  render();
+  // Show workout length selection for fresh start
+  showWorkoutLengthOverlay();
 }
 
 // ============================================
