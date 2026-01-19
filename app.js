@@ -1181,8 +1181,7 @@ function showEndScreen() {
   if (result.newSticker) {
     const stickerDiv = document.createElement('div');
     stickerDiv.className = 'reward-sticker';
-    // Using placekitten or placeholder until SVGs are created, or just the path assuming I create them next
-    stickerDiv.innerHTML = `<img src="assets/stickers/${result.newSticker}.svg" alt="New Sticker" onerror="this.style.display='none'">`;
+    stickerDiv.innerHTML = `<img src="assets/stickers/${result.newSticker}.png" alt="New Sticker" onerror="this.style.display='none'">`;
     elements.rewardContainer.appendChild(stickerDiv);
   }
 

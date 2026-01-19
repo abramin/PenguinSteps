@@ -185,36 +185,26 @@ function renderBadges() {
 function renderLevelPath() {
     if (!elements.levelPathContainer) return;
     elements.levelPathContainer.innerHTML = '';
-    elements.levelPathContainer.className = 'stone-path'; // Apply the image-based path class
+    elements.levelPathContainer.className = 'level-path-container';
 
     // Levels 1 to 9
     const totalLevels = 9;
     const currentLevel = motivationState.currentChapter || 1;
 
     for (let i = 1; i <= totalLevels; i++) {
-        // Use 'li' or 'div' - style.css implies list-style:none, so li is good, but div is safer if parent changes.
-        // The previous stone-path style used 'display: flex', so children are flex items.
         const levelDiv = document.createElement('div');
-        levelDiv.className = 'checkpoint';
+        levelDiv.className = 'level-circle';
 
-        // Map states
+        // Map states to use the level_circle*.png assets
         if (i < currentLevel) {
-            levelDiv.classList.add('is-done');
-            // Checkmark
+            levelDiv.classList.add('completed');
             levelDiv.innerHTML = '✓';
-            levelDiv.style.color = '#5d4037';
-            levelDiv.style.fontSize = '1.2rem';
-            levelDiv.style.fontWeight = 'bold';
         } else if (i === currentLevel) {
-            levelDiv.classList.add('is-current');
-            // Wolf/Current Icon? Or just number?
+            levelDiv.classList.add('active');
             levelDiv.textContent = i;
-            levelDiv.style.color = '#3e2723';
-            levelDiv.style.fontWeight = 'bold';
         } else {
-            // Locked
-            // levelDiv.classList.add('locked'); // No specific class in new CSS, but default is transparent
-            levelDiv.innerHTML = `<img src="assets/lock_icon.png" style="width:16px; height:16px; opacity:0.5;">`;
+            levelDiv.classList.add('locked');
+            levelDiv.textContent = i;
         }
 
         elements.levelPathContainer.appendChild(levelDiv);
