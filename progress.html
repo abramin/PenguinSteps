@@ -647,59 +647,80 @@
 
       <div class="tab-container">
         <div class="tabs">
+          <!-- We will use background images for these tabs in CSS -->
           <div class="tab active" data-tab="badges">Badges</div>
           <div class="tab" data-tab="streak">Streak</div>
           <div class="tab" data-tab="journey">Journey</div>
           <div class="tab" data-tab="stickers">Stickers</div>
         </div>
         
-        <div class="tab-content">
-          
-          <!-- Badges View -->
-          <div id="badges" class="tab-pane active">
-            <h2>Your Trophy Case</h2>
-            <div class="badge-grid" id="badgeGrid">
-              <!-- Populated by JS -->
+        <div class="parchment-wrapper">
+          <!-- Top decorative bar inside parchment -->
+          <div class="parchment-top-bar">
+            <div class="session-stat">Sessions Completed: <span id="headerSessionCount">17</span></div>
+            <div class="chapter-progress-mini">
+              <span class="mini-chap-label">Ch. <span id="miniChapNum">1</span></span>
+              <div class="mini-progress-track">
+                <div class="mini-progress-fill" id="miniChapFill" style="width: 70%"></div>
+              </div>
+              <span class="mini-goal-text"><span id="miniChapCurrent">7</span>/<span id="miniChapMax">10</span></span>
             </div>
-            <p id="totalSessionsBadgeLabel" style="margin-top: 20px; font-weight: bold;">Total Sessions: 0</p>
           </div>
 
-          <!-- Streak View -->
-          <div id="streak" class="tab-pane">
-            <h2>Weekly Streak</h2>
-            <div class="streak-calendar" id="streakCalendar">
-              <!-- Populated by JS -->
-            </div>
-            <div class="streak-stats-row">
-              <div class="stat-item">
-                 <div class="stat-value" id="currentStreakValue">0</div>
-                 <div class="stat-label">Current Streak</div>
-              </div>
-              <div class="stat-item">
-                 <div class="stat-value" id="graceDaysValue">2</div>
-                 <div class="stat-label">Grace Days Left</div>
+          <div class="tab-content">
+            
+            <!-- Badges View -->
+            <div id="badges" class="tab-pane active">
+              <div class="badge-grid" id="badgeGrid">
+                <!-- Populated by JS -->
               </div>
             </div>
-            <p style="font-style: italic; margin-top: 20px; color: #5d4037;">Keep the flame alive!</p>
-          </div>
 
-          <!-- Journey View -->
-          <div id="journey" class="tab-pane">
-            <h2>The Wolfwalker's Path</h2>
-            <div class="journey-map" id="journeyMap">
-              <!-- Populated by JS -->
+            <!-- Streak View -->
+            <div id="streak" class="tab-pane">
+              <h2>Weekly Streak</h2>
+              <div class="streak-calendar" id="streakCalendar">
+                <!-- Populated by JS -->
+              </div>
+              <div class="streak-stats-row">
+                <div class="stat-item">
+                   <div class="stat-value" id="currentStreakValue">0</div>
+                   <div class="stat-label">Current Streak</div>
+                </div>
+                <div class="stat-item">
+                   <div class="stat-value" id="graceDaysValue">2</div>
+                   <div class="stat-label">Grace Days Left</div>
+                </div>
+              </div>
+              <p style="font-style: italic; margin-top: 20px; color: #5d4037;">Keep the flame alive!</p>
             </div>
-            <p style="margin-top:10px;">XP: <span id="xpDisplay">0</span></p>
-          </div>
 
-          <!-- Stickers View -->
-          <div id="stickers" class="tab-pane">
-            <h2>Sticker Collection</h2>
-            <div class="stickers-grid" id="stickersGrid">
-              <!-- Populated by JS -->
+            <!-- Journey View -->
+            <div id="journey" class="tab-pane">
+              <h2>The Wolfwalker's Path</h2>
+              <div class="journey-map" id="journeyMap">
+                <!-- Populated by JS -->
+              </div>
+              <p style="margin-top:10px;">XP: <span id="xpDisplay">0</span></p>
             </div>
+
+            <!-- Stickers View -->
+            <div id="stickers" class="tab-pane">
+              <h2>Sticker Collection</h2>
+              <div class="stickers-grid" id="stickersGrid">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+            
           </div>
           
+          <!-- Bottom Level Path -->
+          <div class="parchment-bottom-bar">
+             <div class="level-path-container" id="levelPathContainer">
+               <!-- Populated by JS -->
+             </div>
+          </div>
+
         </div>
       </div>
     </div>
