@@ -155,7 +155,6 @@ const MUSIC_PLAYLIST = [
 
 const CUES = {
   beep: "assets/cues/beep.wav",
-  cheer: "assets/cues/cheer.wav"
 };
 
 class AudioManager {
@@ -819,7 +818,6 @@ function stopTimer() {
 
 function onTimerComplete() {
   stopTimer();
-  // audioManager.playCue('cheer'); // Removed
 
   const step = getCurrentStep();
 
@@ -971,16 +969,13 @@ function render() {
   // Update set status (hidden but kept for compatibility)
   elements.setStatus.textContent = `Set ${state.currentSetIndex + 1} of ${step.sets}`;
 
-  // Update set badge with side info
+  // Update set badge (side info shown via L/R runes)
   let setBadgeText = `Set ${state.currentSetIndex + 1} of ${step.sets}`;
-  if (step.perSide) {
-    setBadgeText += ` - ${state.currentSide} Leg`;
-  }
   elements.setBadge.textContent = setBadgeText;
 
-  // Update side indicator
+  // Update side indicator - toggle show-sides class for L/R runes visibility
   if (step.perSide) {
-    elements.sideVisuals.hidden = false;
+    elements.sideVisuals.classList.add("show-sides");
     elements.sideIndicator.hidden = false;
     elements.sideIndicator.textContent = state.currentSide || "Right";
 
@@ -993,7 +988,7 @@ function render() {
       elements.runeRight.classList.remove("active-side");
     }
   } else {
-    elements.sideVisuals.hidden = true;
+    elements.sideVisuals.classList.remove("show-sides");
     elements.sideIndicator.hidden = true;
     elements.runeLeft.classList.remove("active-side");
     elements.runeRight.classList.remove("active-side");
@@ -1185,10 +1180,6 @@ function showEndScreen() {
   // Show the overlay
   elements.endOverlay.classList.remove("hidden");
   elements.endOverlay.setAttribute("aria-hidden", "false");
-
-  // Play celebration sound
-  // Play celebration sound
-  // audioManager.playCue('cheer');
 }
 
 function hideEndScreen() {

@@ -81,16 +81,15 @@
             <div class="parchment-content">
                 <div class="card-header-ornament"></div>
                 
-                <!-- Side Indicators (Runes) -->
-                <div class="side-indicators" id="sideVisuals" hidden>
-                    <div class="side-rune" id="runeLeft">L</div>
-                    <div class="side-rune" id="runeRight">R</div>
-                </div>
-
                 <h2 class="exercise-title" id="exerciseName">Wall Calf Stretch</h2>
-                
-                <div class="exercise-visual">
-                  <img id="exerciseImage" src="assets/ex_wall_calf_stretch.png" alt="Exercise illustration" />
+
+                <!-- Exercise image with L/R indicators flanking it -->
+                <div class="exercise-visual-wrapper" id="sideVisuals">
+                    <div class="side-rune" id="runeLeft">L</div>
+                    <div class="exercise-visual">
+                      <img id="exerciseImage" src="assets/ex_wall_calf_stretch.png" alt="Exercise illustration" />
+                    </div>
+                    <div class="side-rune" id="runeRight">R</div>
                 </div>
                 
                 <p class="exercise-desc" id="exerciseInstructions"></p>
@@ -98,15 +97,13 @@
                 <div class="main-action-area" id="timerArea">
                     <div class="metric-display">
                          <div class="metric-value" id="timerValue">00:30</div>
-                         <div class="metric-label" id="timerLabel">timer</div>
+                         <div class="metric-label-row">
+                             <span class="metric-label" id="timerLabel">timer</span>
+                             <span class="set-badge-inline" id="setBadge"></span>
+                         </div>
                     </div>
-                
-                    <button class="wood-btn" id="primaryAction">Start</button>
-                </div>
 
-                <div class="set-info">
-                   <span class="wolf-icon">🐺</span>
-                   <span id="setBadge">Set 1 of 3 - Right Leg</span>
+                    <button class="wood-btn" id="primaryAction">Start</button>
                 </div>
             </div>
             

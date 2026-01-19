@@ -149,6 +149,16 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Hide fallback styles for our image buttons */
+#backButtonNav,
+#pauseButton,
+#skipButtonNav {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+
 .rune-symbol {
   font-size: 2.5rem;
   font-weight: bold;
@@ -220,11 +230,23 @@ body {
   width: 100%;
 }
 
-.side-indicators {
+/* Exercise visual wrapper - L/R indicators flank the image */
+.exercise-visual-wrapper {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 10px;
+  gap: 15px;
+  width: 100%;
+  margin: 8px 0;
+}
+
+/* Hide runes when not a per-side exercise */
+.exercise-visual-wrapper:not(.show-sides) .side-rune {
+  visibility: hidden;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
 }
 
 .side-rune {
@@ -243,6 +265,7 @@ body {
   border: 2px solid #3e2723;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
   transition: all 0.3s;
+  flex-shrink: 0;
 }
 
 .side-rune.active-side {
@@ -359,6 +382,27 @@ body {
   letter-spacing: 2px;
 }
 
+/* Combined metric label row - timer/reps label with set info */
+.metric-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.set-badge-inline {
+  text-transform: uppercase;
+  font-size: 1rem;
+  color: #5d4037;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.set-badge-inline:not(:empty)::before {
+  content: " - ";
+  color: #8d6e63;
+}
+
 /* Wood Button */
 .wood-btn {
   background: #5d4037 url('assets/wood_texture.png') center;
@@ -456,14 +500,9 @@ body {
   }
 }
 
+/* Set info now displayed inline with metric label */
 .set-info {
-  margin-top: 10px;
-  font-size: 1.2rem;
-  color: #5d4037;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: none;
 }
 
 /* Bottom Path */
@@ -473,7 +512,8 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
+  /* Prevent shrinking */
   /* Add a curved path SVG background if desired later */
 }
 
@@ -489,19 +529,149 @@ body {
 }
 
 /* Connecting line */
+/* Connecting line - Hidden for image based path */
 .stone-path::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: rgba(255, 236, 210, 0.4);
-  /* Glowy path */
-  z-index: 0;
-  border-radius: 99px;
-  box-shadow: 0 0 10px rgba(255, 236, 210, 0.2);
+  display: none;
 }
+
+/* Image-based Bottom Path */
+.stone-path {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  /* positions determined by image approx or just centered */
+  position: relative;
+  width: 600px;
+  /* Approx width of image */
+  height: 100px;
+  background: url('assets/progress_stones.png') no-repeat center bottom;
+  background-size: contain;
+}
+
+.checkpoint {
+  /* Hide the actual CSS stones, we just want the glowing effects for active ones */
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: absolute;
+  /* Position explicitly along the path if possible, or just let them flow if they align */
+  display: flex;
+  /* We might hide the non-active ones or style them to be invisible hitboxes */
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  /* Hide numbers */
+  z-index: 1;
+}
+
+/* We need to position checkpoints roughly over the stones in the image. 
+   Since we don't know exact coordinates, we might need a grid or just let them float.
+   For now, let's assume the image has stones in a line and we just overlay checks.
+   Actually, if the image has *all* stones, we only need to show the "active" one as a glow. 
+*/
+
+.checkpoint.is-current {
+  background: radial-gradient(circle, rgba(79, 195, 247, 0.6) 0%, rgba(79, 195, 247, 0) 70%);
+  box-shadow: 0 0 20px #4fc3f7;
+  transform: scale(1.5);
+  border: 2px solid #fff;
+  z-index: 2;
+  /* Make visible */
+}
+
+.checkpoint.is-done {
+  /* Maybe a gold glow? */
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 215, 0, 0) 70%);
+  border: 2px solid #ffd700;
+  color: transparent;
+}
+
+
+/* Specific Buttons */
+#backButtonNav,
+#pauseButton,
+#skipButtonNav {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  width: 100px;
+  height: 100px;
+  transition: transform 0.2s;
+  /* Hide text inside */
+  color: transparent;
+  text-shadow: none;
+}
+
+#backButtonNav .rune-symbol,
+#pauseButton .rune-symbol,
+#skipButtonNav .rune-symbol,
+.rune-label {
+  display: none;
+}
+
+#backButtonNav {
+  background-image: url('assets/back_button.png');
+}
+
+#pauseButton {
+  background-image: url('assets/pause_button.png');
+}
+
+#skipButtonNav {
+  background-image: url('assets/skip_button.png');
+}
+
+/* Hover effects */
+#backButtonNav:hover,
+#pauseButton:hover,
+#skipButtonNav:hover {
+  transform: scale(1.1);
+  filter: brightness(1.1);
+}
+
+#backButtonNav:active,
+#pauseButton:active,
+#skipButtonNav:active {
+  transform: scale(0.95);
+}
+
+/* NEW PROGRESS BAR */
+.progress-bar {
+  width: 300px;
+  height: 40px;
+  /* Taller for the frame */
+  background: url('assets/progress_bar_frame.png') no-repeat center;
+  background-size: 100% 100%;
+  border-radius: 0;
+  /* Image has shape */
+  border: none;
+  box-shadow: none;
+  /* Image has shadow */
+  padding: 4px 6px;
+  /* Adjust based on frame thickness */
+  position: relative;
+  margin-top: 10px;
+  overflow: visible;
+  /* Allow effects outside */
+}
+
+.progress-fill {
+  height: 100%;
+  background: url('assets/progress_bar_fill.png') repeat-x left center;
+  background-size: auto 100%;
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+}
+
 
 .checkpoint {
   width: 50px;
@@ -757,11 +927,12 @@ body {
   max-width: 850px;
   background: url('assets/parchment_full_bg.png') no-repeat center top;
   background-size: 100% 100%;
-  padding: 80px 50px 70px 50px; /* Space for scroll header/footer */
+  padding: 80px 50px 70px 50px;
+  /* Space for scroll header/footer */
   min-height: 600px;
   display: flex;
   flex-direction: column;
-  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6));
   z-index: 5;
 }
 
@@ -795,7 +966,7 @@ body {
   border-radius: 10px;
   overflow: hidden;
   /* Adjust padding inside frame if needed */
-  padding: 3px; 
+  padding: 3px;
 }
 
 .mini-progress-fill {
@@ -811,11 +982,15 @@ body {
 .tabs {
   display: flex;
   justify-content: center;
-  gap: 0; /* Overlap slightly? */
-  margin-bottom: -15px; /* Pull down into parchment */
-  z-index: 4; /* Behind parchment wrapper top edge if needed, but usually tabs are on top */
+  gap: 0;
+  /* Overlap slightly? */
+  margin-bottom: -15px;
+  /* Pull down into parchment */
+  z-index: 4;
+  /* Behind parchment wrapper top edge if needed, but usually tabs are on top */
   position: relative;
-  z-index: 6; /* Above parchment */
+  z-index: 6;
+  /* Above parchment */
   width: 90%;
   margin-left: auto;
   margin-right: auto;
@@ -836,8 +1011,10 @@ body {
   cursor: pointer;
   padding-top: 5px;
   transition: transform 0.2s;
-  box-shadow: none; /* remove old box shadow */
-  border-radius: 0; /* remove old border radius */
+  box-shadow: none;
+  /* remove old box shadow */
+  border-radius: 0;
+  /* remove old border radius */
 }
 
 .tab:hover {
@@ -848,7 +1025,8 @@ body {
 .tab.active {
   background: url('assets/tab_active_bg.png') no-repeat center bottom;
   background-size: 100% 100%;
-  height: 60px; /* Taller */
+  height: 60px;
+  /* Taller */
   margin-top: -10px;
   z-index: 7;
   color: #3e2723;
@@ -858,8 +1036,10 @@ body {
 
 .tab-content {
   flex: 1;
-  background: none; /* Remove old bg */
-  border: none;     /* Remove old border */
+  background: none;
+  /* Remove old bg */
+  border: none;
+  /* Remove old border */
   box-shadow: none;
   padding: 0;
   min-height: auto;
@@ -874,7 +1054,8 @@ body {
 }
 
 .badge-item {
-  background: none !important; /* Remove old bg */
+  background: none !important;
+  /* Remove old bg */
   transition: transform 0.2s;
 }
 
@@ -886,12 +1067,12 @@ body {
 .badge-item img {
   width: 90px;
   height: 90px;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 
 .badge-item.locked img {
   /* We will use a dedicated locked image, so remove grayscale filter or adjust */
-  filter: none; 
+  filter: none;
   opacity: 1;
 }
 
@@ -921,7 +1102,7 @@ body {
   left: 20px;
   right: 20px;
   height: 4px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   z-index: 0;
   border-radius: 2px;
 }
@@ -950,13 +1131,15 @@ body {
 
 /* Level States */
 .level-circle.locked {
-  background-image: url('assets/level_circle_locked.png'); /* Will generate */
+  background-image: url('assets/level_circle_locked.png');
+  /* Will generate */
   color: #aaa;
 }
+
 /* Fallback if image missing */
 .level-circle.locked {
-   background-color: #5d4037; 
-   border-radius: 50%;
+  background-color: #5d4037;
+  border-radius: 50%;
 }
 
 .level-circle.active {
@@ -965,12 +1148,15 @@ body {
   height: 48px;
   font-size: 1.2rem;
   margin: 0 5px;
-  background-color: transparent; /* Reset fallback */
+  background-color: transparent;
+  /* Reset fallback */
 }
 
 .level-circle.completed {
-  background-image: url('assets/level_circle_completed.png'); /* Will generate */
-  background-color: #cba135; /* Fallback */
+  background-image: url('assets/level_circle_completed.png');
+  /* Will generate */
+  background-color: #cba135;
+  /* Fallback */
   border-radius: 50%;
 }
 
@@ -979,19 +1165,19 @@ body {
     padding: 60px 20px 50px 20px;
     background-size: 100% 100%;
   }
-  
+
   .tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
     padding-bottom: 5px;
   }
-  
+
   .tab {
     min-width: 100px;
     font-size: 0.9rem;
   }
-  
+
   .mini-progress-track {
     width: 100px;
   }
@@ -1034,7 +1220,7 @@ body {
   }
 
   /* Audio controls */
-  .wood-header > div[style*="left"] {
+  .wood-header>div[style*="left"] {
     left: 10px !important;
     gap: 5px !important;
   }
@@ -1120,15 +1306,24 @@ body {
     font-size: 1.2rem;
   }
 
-  .side-indicators {
-    gap: 12px;
-    margin-bottom: 5px;
+  .exercise-visual-wrapper {
+    gap: 10px;
+    margin: 5px 0;
   }
 
   .side-rune {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+
+  .metric-label-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .set-badge-inline {
+    font-size: 0.85rem;
   }
 
   .controls-left {
@@ -1282,42 +1477,108 @@ body {
 /* 9-inch Tablets in Landscape (typical dimensions) */
 @media (min-width: 769px) and (max-width: 1024px) and (max-height: 900px) {
   .page-container {
-    padding: 10px;
+    padding: 8px;
   }
 
   .wood-header {
-    height: 65px;
+    height: 55px;
   }
 
   .game-title {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
+  }
+
+  .header-progress {
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+
+  .progress-bar {
+    width: 250px;
+    height: 30px;
+    margin-top: 5px;
   }
 
   .bottom-path-area {
-    height: 70px;
+    height: 60px;
   }
 
   .checkpoint {
-    width: 38px;
-    height: 38px;
-    font-size: 0.95rem;
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
   }
 
   .checkpoint.is-current {
-    transform: scale(1.15) translateY(-6px);
+    transform: scale(1.15) translateY(-5px);
   }
 
   .game-grid {
     gap: 15px;
-    padding: 10px 0;
+    padding: 8px 0;
   }
 
   .parchment-card {
-    padding: 30px 40px;
+    padding: 20px 30px;
+    min-height: auto;
+  }
+
+  .parchment-content {
+    gap: 8px;
+  }
+
+  .exercise-title {
+    font-size: 1.6rem;
+    padding-bottom: 5px;
+  }
+
+  .exercise-desc {
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+
+  .exercise-visual-wrapper {
+    gap: 12px;
+    margin: 5px 0;
+  }
+
+  .exercise-visual img {
+    max-height: 180px;
+  }
+
+  .side-rune {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .metric-value {
+    font-size: 2.8rem;
+  }
+
+  .metric-label,
+  .set-badge-inline {
+    font-size: 0.9rem;
+  }
+
+  .main-action-area {
+    margin: 8px 0;
+    gap: 12px;
+  }
+
+  .wood-btn {
+    padding: 8px 25px;
+    font-size: 1.2rem;
   }
 
   .stone-path {
     gap: 10px;
+    height: 55px;
+  }
+
+  .rune-btn {
+    width: 65px;
+    height: 65px;
   }
 }
 
