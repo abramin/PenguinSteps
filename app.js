@@ -71,17 +71,6 @@ const routine = [
     image: "assets/ex_heel_toe_walk.png"
   },
   {
-    name: "Walk Uphill/Incline",
-    type: "Gait",
-    mode: "timed",
-    sets: 1,
-    perSide: false,
-    seconds: 180,
-    purpose: "Build endurance.",
-    instructions: "Walk uphill at a steady pace.",
-    image: "assets/ex_walk_uphill.png"
-  },
-  {
     name: "One-Leg Stand (eyes open, heels down)",
     type: "Balance",
     mode: "timed",
