@@ -403,31 +403,29 @@ function importBackup(file) {
     const reader = new FileReader();
 
     reader.onload = (e) => {
-        try {
-            const content = e.target.result;
-            const backup = JSON.parse(content);
+        const content = e.target.result;
 
-            // Basic Validation
-            if (!backup.schemaVersion || !backup.data) {
-                throw new Error("Invalid backup file format (missing schema version or data).");
-            }
+        // Small delay to let browser events settle after file picker closes
+        setTimeout(() => {
+            try {
+                const backup = JSON.parse(content);
 
-            if (backup.schemaVersion !== 1) {
-                alert(`Warning: This backup version (${backup.schemaVersion}) might not be fully supported. Trying anyway...`);
-            }
+                // Basic Validation
+                if (!backup.schemaVersion || !backup.data) {
+                    throw new Error("Invalid backup file format (missing schema version or data).");
+                }
 
-            const data = backup.data;
-            const sessions = data.motivation?.totalSessionsCompleted || 0;
-            const badges = data.motivation?.badgesUnlocked?.length || 0;
-            const date = backup.backupDate ? new Date(backup.backupDate).toLocaleDateString() : "Unknown date";
+                if (backup.schemaVersion !== 1) {
+                    alert(`Warning: This backup version (${backup.schemaVersion}) might not be fully supported. Trying anyway...`);
+                }
 
-            const msg = `Found backup from ${date}.\n\nContains:\n- ${sessions} Sessions\n- ${badges} Badges\n\nThis will OVERWRITE your current progress. Are you sure?`;
+                const data = backup.data;
 
-            if (confirm(msg)) {
                 // Restore Motivation
                 if (data.motivation) {
-                    motivationState = { ...defaultMotivationState, ...data.motivation };
-                    saveMotivationData();
+                    const restoredMotivation = { ...defaultMotivationState, ...data.motivation };
+                    localStorage.setItem(MOTIVATION_KEY, JSON.stringify(restoredMotivation));
+                    motivationState = restoredMotivation;
                 }
 
                 // Restore App State
@@ -443,14 +441,14 @@ function importBackup(file) {
                     localStorage.removeItem(APP_STORAGE_KEYS.completedSteps);
                 }
 
-                alert("Backup restored successfully!");
+                alert("Backup restored!");
                 window.location.reload();
-            }
 
-        } catch (err) {
-            console.error("Import error:", err);
-            alert("Failed to import backup: " + err.message);
-        }
+            } catch (err) {
+                console.error("Import error:", err);
+                alert("Failed to import backup: " + err.message);
+            }
+        }, 100);
     };
 
     reader.onerror = () => {
