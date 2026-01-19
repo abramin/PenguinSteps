@@ -1315,6 +1315,11 @@ function skip() {
     const nextStep = getCurrentStep();
     state.currentSide = nextStep.perSide ? "Right" : null;
     state.currentRep = 0;
+
+    // Initialize timer for next exercise if timed (but don't start it)
+    if (nextStep.mode === "timed") {
+      initializeTimer();
+    }
   }
 
   render();
