@@ -416,7 +416,8 @@ const defaultMotivationState = {
   lastGraceMonth: null, // "YYYY-MM"
   badgesUnlocked: [], // { id, timestamp }
   xpTotal: 0,
-  collectedStickers: [] // IDs
+  collectedStickers: [], // IDs
+  lastStickerDate: null // "YYYY-MM-DD"
 };
 
 let motivationState = { ...defaultMotivationState };
@@ -574,12 +575,43 @@ function updateExperience(exercisesCount) {
   }
 }
 
-// Logic: Award Random Sticker
+// Logic: Award Daily Sticker
 function awardSticker() {
-  const STICKERS = ['sticker_star', 'sticker_paw', 'sticker_wolf', 'sticker_moon', 'sticker_tree', 'sticker_heart'];
-  const randomSticker = STICKERS[Math.floor(Math.random() * STICKERS.length)];
-  motivationState.collectedStickers.push(randomSticker);
-  return randomSticker;
+  const STICKERS = [
+    'sticker_acorn', 'sticker_butterfly', 'sticker_feather_blue',
+    'sticker_leaf_gold', 'sticker_moon_crescent', 'sticker_owl',
+    'sticker_tree_pine', 'sticker_wolf_paw'
+  ];
+
+  const today = getTodayString();
+
+  // Check if already awarded today
+  if (motivationState.lastStickerDate === today) {
+    return null;
+  }
+
+  // Filter out collected stickers
+  const collectedSet = new Set(motivationState.collectedStickers);
+  const available = STICKERS.filter(s => !collectedSet.has(s));
+
+  let stickerToAward;
+
+  if (available.length > 0) {
+    // Pick a new one
+    stickerToAward = available[Math.floor(Math.random() * available.length)];
+  } else {
+    // All collected! Pick random duplicate or maybe nothing? 
+    // Let's award a duplicate for now to keep the fun going, or handle "completed" state.
+    // User asked for "1 sticker a day", didn't say unique. 
+    // But unique is better. If all collected, maybe return null or a special "golden" version?
+    // Let's just pick random.
+    stickerToAward = STICKERS[Math.floor(Math.random() * STICKERS.length)];
+  }
+
+  motivationState.collectedStickers.push(stickerToAward);
+  motivationState.lastStickerDate = today;
+
+  return stickerToAward;
 }
 
 // Master Function: Complete Session
@@ -642,6 +674,7 @@ const elements = {
   totalTimeValue: document.getElementById("totalTimeValue"),
   exercisesCompleted: document.getElementById("exercisesCompleted"),
   restartFromEnd: document.getElementById("restartFromEnd"),
+  closeEndScreen: document.getElementById("closeEndScreen"),
   rewardContainer: document.getElementById("rewardContainer"),
   // Resume session elements
   resumeOverlay: document.getElementById("resumeOverlay"),
@@ -1459,6 +1492,7 @@ elements.backButtonNav.addEventListener("click", goBack);
 elements.skipButtonNav.addEventListener("click", skip);
 elements.restartButton.addEventListener("click", restart);
 elements.restartFromEnd.addEventListener("click", restart);
+elements.closeEndScreen.addEventListener("click", hideEndScreen);
 elements.readyButton.addEventListener("click", continueAfterRest);
 
 // Resume session overlay handlers

@@ -13,18 +13,17 @@ const APP_STORAGE_KEYS = {
     completedSteps: STORAGE_NAMESPACE + 'completedSteps',
 };
 
-// Badge Definitions (Duplicate)
+// Badge Definitions (Synced with app.js - using SVG assets)
 const BADGES = [
-    { id: 'first_session', name: 'First Session', description: 'Complete your first session', icon: 'assets/badges/badge_first_session.png' },
-    { id: 'hat_trick', name: '3 Sessions', description: 'Complete 3 sessions in a week', icon: 'assets/badges/badge_3_sessions.png' },
-    { id: 'ten_strong', name: '10 Sessions', description: 'Complete 10 total sessions', icon: 'assets/badges/badge_10_sessions.png' },
-    { id: 'quarter_century', name: '25 Sessions', description: 'Complete 25 total sessions', icon: 'assets/badges/badge_25_sessions.png' },
-    { id: 'fifty_fine', name: '50 Sessions', description: 'Complete 50 total sessions', icon: 'assets/badges/badge_50_sessions.png' },
-    { id: 'century_wolf', name: '100 Sessions', description: 'Complete 100 total sessions', icon: 'assets/badges/badge_100_sessions.png' },
-    { id: 'stretch_star', name: 'Stretch Star', description: 'Complete all stretches in a session', icon: 'assets/badges/badge_stretch_star.png' },
-    { id: 'strong_steps', name: 'Strong Steps', description: 'Complete all strength sets in a session', icon: 'assets/badges/badge_strong_steps.png' },
-    { id: 'explorer', name: 'Explorer', description: 'Complete a session while offline', icon: 'assets/badges/badge_explorer.png' },
-    { id: 'offline_badge', name: 'Offline Badge', description: 'Complete a session without internet', icon: 'assets/badges/badge_offline.png' }
+    { id: 'first_session', name: 'First Steps', description: 'Complete your first session', icon: 'assets/badges/badge_first_steps.svg' },
+    { id: 'hat_trick', name: 'Hat Trick', description: 'Complete 3 sessions in a week', icon: 'assets/badges/badge_hat_trick.svg' },
+    { id: 'ten_strong', name: 'Ten Strong', description: 'Complete 10 total sessions', icon: 'assets/badges/badge_ten_strong.svg' },
+    { id: 'quarter_century', name: 'Quarter Century', description: 'Complete 25 total sessions', icon: 'assets/badges/badge_quarter_century.svg' },
+    { id: 'fifty_fine', name: 'Fifty Fine', description: 'Complete 50 total sessions', icon: 'assets/badges/badge_fifty_fine.svg' },
+    { id: 'century_wolf', name: 'Century Wolf', description: 'Complete 100 total sessions', icon: 'assets/badges/badge_century_wolf.svg' },
+    { id: 'stretch_star', name: 'Stretch Star', description: 'Complete all stretches in a session', icon: 'assets/badges/badge_stretch_star.svg' },
+    { id: 'strong_steps', name: 'Strong Steps', description: 'Complete all strength sets in a session', icon: 'assets/badges/badge_strong_steps.svg' },
+    { id: 'explorer', name: 'Explorer', description: 'Complete a session while offline', icon: 'assets/badges/badge_explorer.svg' }
 ];
 
 const CHAPTERS = [
@@ -47,7 +46,8 @@ const defaultMotivationState = {
     xpTotal: 0,
     currentChapter: 1,
     chapterProgress: 0,
-    collectedStickers: []
+    collectedStickers: [],
+    lastStickerDate: null // Synced with app.js
 };
 
 let motivationState = { ...defaultMotivationState };
@@ -160,18 +160,8 @@ function renderBadges() {
         // For locked badges, we might want a specific 'locked' version or just overlay a lock
         // simplified logic: if locked, use the generic locked icon or filter
         if (!isUnlocked) {
-            // Use generic locked badge for now, or the specific one if we generated locked versions
-            // Plan is to use a generic 'locked' frame or the icon with grayscale
-            // Let's use the icon but rely on CSS to style it as locked + add a lock overlay
-            imgSrc = 'assets/badges/badge_locked.png'; // Will need to generate this or use existing logic
-        }
-
-        // Actually, better logic: Always try to show the badge, but if locked show a "mystery" stone or the locked version
-        if (!isUnlocked) {
-            // Use a placeholder "Mystery Stone" image for locked badges
-            imgSrc = 'assets/badges/badge_locked.png';
-            // Or better, duplicate the 'badge_locked.svg' for now if png not ready
-            // We will assume 'badge_locked.png' exists
+            // Use generic locked badge SVG
+            imgSrc = 'assets/badges/badge_locked.svg';
         }
 
         // However, standard patterns often show the silhouette. 
@@ -180,7 +170,7 @@ function renderBadges() {
         // The previous logic was: locked -> specific locked image.
         // Let's use a generic 'badge_locked.png' for all locked items to match the "Mystery Stone" look in the mockup
 
-        const finalSrc = isUnlocked ? badge.icon : 'assets/badges/badge_locked.png';
+        const finalSrc = isUnlocked ? badge.icon : 'assets/badges/badge_locked.svg';
 
         el.innerHTML = `
             <img src="${finalSrc}" alt="${badge.name}" onerror="this.src='assets/rune_stone.png'">
@@ -195,29 +185,37 @@ function renderBadges() {
 function renderLevelPath() {
     if (!elements.levelPathContainer) return;
     elements.levelPathContainer.innerHTML = '';
+    elements.levelPathContainer.className = 'stone-path'; // Apply the image-based path class
 
     // Levels 1 to 9
     const totalLevels = 9;
     const currentLevel = motivationState.currentChapter || 1;
 
     for (let i = 1; i <= totalLevels; i++) {
+        // Use 'li' or 'div' - style.css implies list-style:none, so li is good, but div is safer if parent changes.
+        // The previous stone-path style used 'display: flex', so children are flex items.
         const levelDiv = document.createElement('div');
-        levelDiv.className = 'level-circle';
-        levelDiv.textContent = i;
+        levelDiv.className = 'checkpoint';
 
+        // Map states
         if (i < currentLevel) {
-            levelDiv.classList.add('completed');
+            levelDiv.classList.add('is-done');
+            // Checkmark
+            levelDiv.innerHTML = '✓';
+            levelDiv.style.color = '#5d4037';
+            levelDiv.style.fontSize = '1.2rem';
+            levelDiv.style.fontWeight = 'bold';
         } else if (i === currentLevel) {
-            levelDiv.classList.add('active');
-            levelDiv.textContent = ''; // active usually has icon/glow without text or different text
+            levelDiv.classList.add('is-current');
+            // Wolf/Current Icon? Or just number?
+            levelDiv.textContent = i;
+            levelDiv.style.color = '#3e2723';
+            levelDiv.style.fontWeight = 'bold';
         } else {
-            levelDiv.classList.add('locked');
+            // Locked
+            // levelDiv.classList.add('locked'); // No specific class in new CSS, but default is transparent
             levelDiv.innerHTML = `<img src="assets/lock_icon.png" style="width:16px; height:16px; opacity:0.5;">`;
-            levelDiv.textContent = '';
         }
-
-        // If active, maybe show the number or just the glow? 
-        if (i === currentLevel) levelDiv.textContent = i;
 
         elements.levelPathContainer.appendChild(levelDiv);
     }
@@ -317,7 +315,7 @@ function renderStickers() {
     [...stickers].reverse().forEach(stickerId => {
         const item = document.createElement('div');
         item.className = 'sticker-item';
-        item.innerHTML = `<img src="assets/stickers/${stickerId}.svg" alt="Sticker" onerror="this.style.display='none'">`;
+        item.innerHTML = `<img src="assets/stickers/${stickerId}.png" alt="Sticker" onerror="this.style.display='none'">`;
         elements.stickersGrid.appendChild(item);
     });
 }
