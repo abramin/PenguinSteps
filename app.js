@@ -304,6 +304,34 @@ const STORAGE_KEYS = {
   workoutLength: STORAGE_NAMESPACE + 'workoutLength',
 };
 
+// ============================================
+// Daily Celebration Configuration
+// ============================================
+
+const CELEBRATION_CONFIG = {
+  enabled: true,
+  date: "2026-01-21", // Use YYYY-MM-DD (or MM-DD to repeat yearly).
+  name: "Dalia",
+  showOncePerDay: false,
+  confettiCount: 18,
+  balloonCount: 6,
+  spiritCount: 3,
+  durationMs: 4200,
+};
+
+const CELEBRATION_STORAGE_KEY = STORAGE_NAMESPACE + 'celebrationSeenDate';
+const CELEBRATION_ASSETS = [
+  "assets/stickers/sticker_leaf_gold.png",
+  "assets/stickers/sticker_feather_blue.png",
+  "assets/stickers/sticker_tree_pine.png",
+  "assets/stickers/sticker_moon_crescent.png",
+  "assets/stickers/sticker_acorn.png",
+  "assets/stickers/sticker_butterfly.png",
+  "assets/stickers/sticker_owl.png",
+  "assets/stickers/sticker_wolf_paw.png",
+  "assets/wolf_spirit_blue.png",
+];
+
 function saveSession() {
   try {
     // Save only the persistable parts of state (not timerIntervalId)
@@ -669,6 +697,10 @@ const elements = {
   restOverlay: document.getElementById("restOverlay"),
   restNext: document.getElementById("restNext"),
   readyButton: document.getElementById("readyButton"),
+  // Daily celebration overlay
+  dailyAnimationOverlay: document.getElementById("dailyAnimationOverlay"),
+  dailyMessage: document.getElementById("dailyMessage"),
+  dailyStream: document.getElementById("dailyStream"),
   // End screen elements
   endOverlay: document.getElementById("endOverlay"),
   totalTimeValue: document.getElementById("totalTimeValue"),
@@ -705,6 +737,26 @@ function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+function getLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getLocalDayName(date) {
+  return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+}
+
+function matchesCelebrationDate(dateKey) {
+  const target = (CELEBRATION_CONFIG.date || "").trim();
+  if (!target) return false;
+  if (/^\d{2}-\d{2}$/.test(target)) {
+    return dateKey.slice(5) === target;
+  }
+  return dateKey === target;
 }
 
 function getMetricForStep(step) {
@@ -1136,6 +1188,165 @@ function hideRestOverlay() {
 }
 
 // ============================================
+// Daily Celebration Overlay
+// ============================================
+
+let celebrationVisible = false;
+let celebrationOnClose = null;
+let celebrationTimeoutId = null;
+
+function shouldShowDayCelebration() {
+  if (!CELEBRATION_CONFIG.enabled) return false;
+  const todayKey = getLocalDateKey(new Date());
+  if (!matchesCelebrationDate(todayKey)) return false;
+  if (!CELEBRATION_CONFIG.showOncePerDay) return true;
+
+  const lastSeen = localStorage.getItem(CELEBRATION_STORAGE_KEY);
+  return lastSeen !== todayKey;
+}
+
+function markCelebrationSeen(dateKey) {
+  if (!CELEBRATION_CONFIG.showOncePerDay) return;
+  try {
+    localStorage.setItem(CELEBRATION_STORAGE_KEY, dateKey);
+  } catch (e) {
+    console.warn('Failed to persist celebration state:', e);
+  }
+}
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function addCelebrationItem(target, className, options = {}) {
+  const item = document.createElement("span");
+  item.className = `celebration-item ${className}`.trim();
+
+  const size = options.size || randomBetween(24, 52);
+  const drift = options.drift ?? randomBetween(-70, 70);
+  const driftEnd = options.driftEnd ?? -drift;
+  const spin = options.spin ?? randomBetween(180, 720);
+  const opacity = options.opacity ?? randomBetween(0.55, 0.9);
+  const duration = options.duration || randomBetween(6.5, 11);
+  const delay = options.delay || randomBetween(0, 1.6);
+  const yPos = options.yPos || `${randomBetween(8, 85)}%`;
+
+  item.style.setProperty("--size", `${size}px`);
+  item.style.setProperty("--y", yPos);
+  item.style.setProperty("--delay", `${delay}s`);
+  item.style.setProperty("--duration", `${duration}s`);
+  item.style.setProperty("--drift", `${drift}px`);
+  item.style.setProperty("--drift-end", `${driftEnd}px`);
+  item.style.setProperty("--spin", `${spin}deg`);
+  item.style.setProperty("--opacity", opacity.toFixed(2));
+
+  if (options.backgroundImage) {
+    item.style.backgroundImage = `url('${options.backgroundImage}')`;
+  }
+
+  if (options.balloonColor) {
+    item.style.setProperty("--balloon-color", options.balloonColor);
+  }
+
+  target.appendChild(item);
+}
+
+function buildCelebrationStream() {
+  if (!elements.dailyStream) return;
+  elements.dailyStream.textContent = "";
+
+  const confettiCount = Math.max(0, CELEBRATION_CONFIG.confettiCount || 0);
+  const balloonCount = Math.max(0, CELEBRATION_CONFIG.balloonCount || 0);
+  const spiritCount = Math.max(0, CELEBRATION_CONFIG.spiritCount || 0);
+
+  for (let i = 0; i < confettiCount; i++) {
+    const asset = CELEBRATION_ASSETS[Math.floor(Math.random() * CELEBRATION_ASSETS.length)];
+    addCelebrationItem(elements.dailyStream, "celebration-confetti", {
+      backgroundImage: asset,
+      size: randomBetween(22, 40),
+      yPos: `${randomBetween(5, 92)}%`,
+      duration: randomBetween(6, 10),
+      drift: randomBetween(-90, 90),
+      spin: randomBetween(180, 820),
+      opacity: randomBetween(0.55, 0.95),
+    });
+  }
+
+  const balloonColors = ["#ffd089", "#cba135", "#7db8d6", "#a2d3b0", "#c78b62"];
+  for (let i = 0; i < balloonCount; i++) {
+    addCelebrationItem(elements.dailyStream, "celebration-balloon", {
+      size: randomBetween(44, 72),
+      yPos: `${randomBetween(18, 78)}%`,
+      duration: randomBetween(8, 12.5),
+      drift: randomBetween(-40, 40),
+      driftEnd: randomBetween(-40, 40),
+      spin: randomBetween(-15, 15),
+      balloonColor: balloonColors[i % balloonColors.length],
+      opacity: randomBetween(0.7, 1),
+    });
+  }
+
+  for (let i = 0; i < spiritCount; i++) {
+    addCelebrationItem(elements.dailyStream, "celebration-spirit", {
+      size: randomBetween(160, 240),
+      yPos: `${randomBetween(8, 60)}%`,
+      duration: randomBetween(10, 14),
+      drift: randomBetween(-30, 30),
+      driftEnd: randomBetween(-30, 30),
+      spin: randomBetween(-5, 5),
+      opacity: randomBetween(0.4, 0.7),
+    });
+  }
+}
+
+function showDayCelebration(onClose) {
+  if (!elements.dailyAnimationOverlay || celebrationVisible) return false;
+
+  const today = new Date();
+  const dayName = getLocalDayName(today);
+  const displayName = CELEBRATION_CONFIG.name || "Friend";
+
+  if (elements.dailyMessage) {
+    elements.dailyMessage.textContent = `Happy ${dayName} ${displayName}!`;
+  }
+
+  buildCelebrationStream();
+  markCelebrationSeen(getLocalDateKey(today));
+
+  celebrationVisible = true;
+  celebrationOnClose = onClose || null;
+
+  elements.dailyAnimationOverlay.classList.remove("hidden");
+  elements.dailyAnimationOverlay.setAttribute("aria-hidden", "false");
+
+  if (celebrationTimeoutId) {
+    clearTimeout(celebrationTimeoutId);
+  }
+  const durationMs = Math.max(1200, CELEBRATION_CONFIG.durationMs || 4000);
+  celebrationTimeoutId = setTimeout(hideDayCelebration, durationMs);
+  return true;
+}
+
+function hideDayCelebration() {
+  if (!elements.dailyAnimationOverlay || !celebrationVisible) return;
+
+  if (celebrationTimeoutId) {
+    clearTimeout(celebrationTimeoutId);
+    celebrationTimeoutId = null;
+  }
+  elements.dailyAnimationOverlay.classList.add("hidden");
+  elements.dailyAnimationOverlay.setAttribute("aria-hidden", "true");
+
+  celebrationVisible = false;
+
+  if (celebrationOnClose) {
+    const onClose = celebrationOnClose;
+    celebrationOnClose = null;
+    onClose();
+  }
+}
+
+// ============================================
 // End Screen
 // ============================================
 
@@ -1435,26 +1646,39 @@ function restartFromEndScreen() {
   resetRoutine();
 }
 
+function beginWorkout() {
+  if (state.started) return;
+
+  const step = getCurrentStep();
+  state.started = true;
+  state.routineStartTime = Date.now(); // Track when routine started
+  audioManager.init(); // Initialize audio on first user interaction
+
+  if (step.mode === "timed") {
+    initializeTimer();
+    startCountdown(() => {
+      startTimer();
+    });
+  } else {
+    audioManager.playCue('beep');
+  }
+  render();
+}
+
+function tryStartWorkout() {
+  if (shouldShowDayCelebration()) {
+    const shown = showDayCelebration(beginWorkout);
+    if (shown) return;
+  }
+  beginWorkout();
+}
+
 // Handle primary action button click
 function handlePrimaryAction() {
   const step = getCurrentStep();
 
   if (!state.started) {
-    state.started = true;
-    state.routineStartTime = Date.now(); // Track when routine started
-    audioManager.init(); // Initialize audio on first user interaction
-
-    if (step.mode === "timed") {
-      initializeTimer();
-      startCountdown(() => {
-        startTimer();
-      });
-    } else {
-      // For non-timed, just start
-      // Maybe play a start beep too?
-      audioManager.playCue('beep');
-    }
-    render();
+    tryStartWorkout();
     return;
   }
 
@@ -1493,6 +1717,11 @@ elements.restartButton.addEventListener("click", restart);
 elements.restartFromEnd.addEventListener("click", restart);
 elements.closeEndScreen.addEventListener("click", hideEndScreen);
 elements.readyButton.addEventListener("click", continueAfterRest);
+if (elements.dailyAnimationOverlay) {
+  elements.dailyAnimationOverlay.addEventListener("click", () => {
+    hideDayCelebration();
+  });
+}
 
 // Resume session overlay handlers
 function showResumeOverlay() {
@@ -1683,3 +1912,141 @@ updateBtn?.addEventListener('click', () => {
 dismissUpdate?.addEventListener('click', () => {
   hideUpdateBanner();
 });
+
+// ============================================
+// Daily Animation Logic
+// ============================================
+
+const SPECIAL_ANIMATION_DATE = "2026-01-22"; // YYYY-MM-DD
+
+function checkAndShowDailyAnimation() {
+  const overlay = document.getElementById('dailyAnimationOverlay');
+  if (!overlay) return;
+
+  const today = getTodayString();
+  
+  // 1. Check Date
+  if (today !== SPECIAL_ANIMATION_DATE) {
+    return;
+  }
+
+  // 2. Check if already seen today
+  const seenKey = 'wolfwalkers_anim_seen_' + today;
+  if (localStorage.getItem(seenKey) === 'true') {
+    return;
+  }
+
+  // 3. Prepare Message
+  const dateObj = new Date();
+  const options = { weekday: 'long' };
+  const dayName = new Intl.DateTimeFormat('en-US', options).format(dateObj);
+  
+  const msgElement = document.getElementById('dailyMessage');
+  if (msgElement) {
+    msgElement.innerHTML = `Happy ${dayName} <br> Dalia!`;
+  }
+
+  // 4. Show Overlay
+  overlay.classList.remove('hidden');
+  
+  // 5. Play Audio (Reuse celebration or Cue)
+  // setTimeout(() => audioManager.playCue('beep'), 500); // Optional
+
+  // 6. Start Particle Animation
+  startConfettiAnimation();
+
+  // 7. Auto-Dismiss and Save
+  const DISMISS_TIME = 6000; // 6 seconds
+  
+  // Allow click to dismiss early
+  overlay.addEventListener('click', () => {
+    dismissDailyAnimation(overlay, seenKey);
+  }, { once: true });
+
+  setTimeout(() => {
+    if (!overlay.classList.contains('hidden')) {
+        dismissDailyAnimation(overlay, seenKey);
+    }
+  }, DISMISS_TIME);
+}
+
+function dismissDailyAnimation(overlay, key) {
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.style.opacity = ''; // Reset for next time (though next time is next year probably)
+        stopConfettiAnimation();
+    }, 1000);
+    localStorage.setItem(key, 'true');
+}
+
+// Confetti System
+let confettiInterval;
+const CONFETTI_COLORS = ['#ffd700', '#00e5ff', '#ff1744', '#ffffff', '#76ff03'];
+
+function startConfettiAnimation() {
+    const overlay = document.getElementById('dailyAnimationOverlay');
+    if (!overlay) return;
+
+    // Burst initially
+    for(let i=0; i<30; i++) spawnConfetti(overlay);
+
+    // Continuous rain
+    confettiInterval = setInterval(() => {
+        spawnConfetti(overlay);
+    }, 100);
+}
+
+function stopConfettiAnimation() {
+    if (confettiInterval) clearInterval(confettiInterval);
+    // Cleanup DOM particles
+    const overlay = document.getElementById('dailyAnimationOverlay');
+    if(overlay) {
+        const particles = overlay.querySelectorAll('.confetti');
+        particles.forEach(p => p.remove());
+    }
+}
+
+function spawnConfetti(container) {
+    const el = document.createElement('div');
+    el.classList.add('confetti');
+    
+    // Random Properties
+    const color = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    const left = Math.random() * 100; // %
+    const duration = 3 + Math.random() * 4; // 3-7s
+    const size = 10 + Math.random() * 15; // 10-25px
+    
+    // Random Shape
+    const type = Math.random();
+    
+    el.style.left = left + '%';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.backgroundColor = color;
+    el.style.animationDuration = duration + 's';
+    
+    if (type < 0.33) {
+        // Circle (Spirit)
+        el.style.borderRadius = '50%';
+        el.style.boxShadow = `0 0 10px ${color}`;
+    } else if (type < 0.66) {
+        // Leaf shape
+        el.style.borderRadius = '0px 50% 0px 50%';
+        el.style.transform = `rotate(${Math.random() * 360}deg)`;
+    } else {
+        // Square/Diamond (Rune fragment)
+        el.style.transform = `rotate(${45 + Math.random() * 90}deg)`;
+    }
+    
+    container.appendChild(el);
+    
+    // Remove after animation
+    setTimeout(() => {
+        el.remove();
+    }, duration * 1000);
+}
+
+// Initialize
+// Call checkAndShowDailyAnimation at end of init if possible, or just call it here as it runs on load
+checkAndShowDailyAnimation();
